@@ -1,8 +1,9 @@
-#### Santa Clara University 
-## Senior Design Project
+### Santa Clara University 
+# Senior Design Project
 
-*Authors: Conner Davis, Matthew Wong*
-*Advising Professor: Dr. Lewis*
+Authors: Conner Davis, Matthew Wong
+
+Advisor: Dr. Lewis
 
 ### Problem
 
