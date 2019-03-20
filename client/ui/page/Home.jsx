@@ -10,7 +10,7 @@ class Home extends Component {
   render() {
     return (
       <div>
-        <h1>Hello there...</h1>
+        <h1>Tell us a little about yourself.</h1>
       </div>
     )
   }
