@@ -11,8 +11,8 @@ import Classes from './page/Classes'
 import Schedules from './page/Schedules'
 
 /**
- * Master index of routes with links in the SPA header. Maps the path of
- * the page to the component that should be displayed there.
+ * Master index of routes with links in the SPA header. Maps the path of the
+ * page to the component that should be displayed there.
  */
 const Routes = {
   home: Home,
@@ -28,8 +28,8 @@ const App = () => (
     <div>
       <Header links={ Object.keys(Routes) } />
       <div className="container">
-        { Object.entries(Routes).map(([path, component], key) =>
-          <Route exact path={ `/${path}` } component={ component } />
+        { Object.entries(Routes).map(([path, component], i) =>
+          <Route key={ i } exact path={ `/${path}` } component={ component } />
         )}
       </div>
     </div>

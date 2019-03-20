@@ -22,9 +22,12 @@ class Header extends Component {
               <span className="text-uppercase wordmark link-home pr-4">
                 <a href="/">SCU Courses</a>
               </span>
-              { Object.values(this.props.links).map((path, key) =>
-                <NavLink exact to={ `/${path}` } activeClassName="font-weight-bold">
-                  <span className="px-2">{ this.constructor.properNoun(path) }</span>
+              { Object.values(this.props.links).map((path, i) =>
+                <NavLink key={ i } exact to={ `/${path}` }
+                         activeClassName="font-weight-bold">
+                  <span className="px-2">
+                    { this.constructor.properNoun(path) }
+                  </span>
                 </NavLink>
               )}
             </div>
