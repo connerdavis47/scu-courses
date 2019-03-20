@@ -1,7 +1,7 @@
 ### Santa Clara University 
 # Senior Design Project
 
-Authors: Conner Davis, Matthew Wong
+Authors: [Conner Davis](http://connerdavis.xyz), Matthew Wong
 
 Advisor: Dr. Lewis
 
