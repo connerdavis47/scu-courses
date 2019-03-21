@@ -27,7 +27,7 @@ const App = () => (
   <Router>
     <div>
       <Header links={ Object.keys(Routes) } />
-      <div className="container">
+      <div className="container py-5">
         { Object.entries(Routes).map(([path, component], i) =>
           <Route key={ i } exact path={ `/${path}` } component={ component } />
         )}

@@ -2,6 +2,7 @@ import { hot } from 'react-hot-loader'
 import React, { Component } from 'react'
 import {
   Badge,
+  Button,
   Form,
   FormGroup,
   Label,
@@ -82,8 +83,8 @@ class Home extends Component {
   render() {
     return (
       <section id="home-form" className="home-form">
-        <h1 className="mb-4">Tell us a little about yourself.</h1>
-        <Form className="border p-3">
+        <h2 className="mb-4">Tell us a little about yourself.</h2>
+        <Form className="border p-4">
           <FormGroup>
             <Label for="inputEmail">Email</Label>
             <Input type="email" name="email" id="inputEmail" />
@@ -106,6 +107,8 @@ class Home extends Component {
               )}
             </div>
           </FormGroup>
+          <hr />
+          <Button outline color="success">Suggest Schedules</Button>
         </Form>
       </section>
     )
