@@ -1,11 +1,21 @@
+/* Global */
+
 h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
 }
+
+/* Header.jsx */
 
 .header-scu {
   min-height: auto;
 }
 
-.input-course-option {
-  max-width: 33%;
+/* Home.jsx */
+
+.home-form-courses .badge {
+  flex: 1 0 22%;
+}
+
+.badge {
+  cursor: pointer;
 }

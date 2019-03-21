@@ -54,9 +54,9 @@ const UGRAD_COEN = [
   'COEN 194',
   'COEN 195',
   'COEN 196',
-  'Elective 1 in (COEN 101-180, ELEN 115, 133, 134)',
-  'Elective 2 in (COEN 101-180, ELEN 115, 133, 134)',
-  'Elective 3 in (COEN 101-180, ELEN 115, 133, 134)',
+  'Elective (Upper-Div)',
+  'Elective (Upper-Div)',
+  'Elective (Upper-Div)',
   'ELEN 50',
   'ELEN 153',
   'ENGL 181',
@@ -70,7 +70,7 @@ const UGRAD_COEN = [
   'CHEM 11',
   'AMTH 106 / MATH 22',
   'AMTH 108',
-  '1 in (MATH 53, CSCI 166, AMTH 118)',
+  'MATH 53 / CSCI 166 / AMTH 118',
   'Educational Enrichment',
 ];
 
@@ -98,10 +98,11 @@ class Home extends Component {
             </Input>
           </FormGroup>
           <FormGroup>
-            <Label>Tap all the classes you've already taken.</Label>
-            <div className="d-flex flex-wrap">
+            <Label>Select all the classes you've already taken.</Label>
+            <div className="home-form-courses d-flex flex-wrap">
               { Object.values(UGRAD_COEN).map((course, i) =>
-                <Badge key={ i } color="secondary" className="m-1">
+                <Badge key={ i } color="light" className="m-1 p-2 border"
+                       onClick={ this.toggleInputCourse }>
                   { ` ${course}` }
                 </Badge>
               )}
@@ -112,6 +113,11 @@ class Home extends Component {
         </Form>
       </section>
     )
+  }
+  
+  toggleInputCourse( e ) {
+    const options = [ 'badge-primary', 'badge-light' ];
+    options.forEach(color => e.target.classList.toggle(color));
   }
   
 }
