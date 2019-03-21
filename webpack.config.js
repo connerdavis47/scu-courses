@@ -5,24 +5,15 @@ const meteorExternals = require('webpack-meteor-externals');
 const clientConfig = {
   entry: './client/main.jsx',
   module: {
-    rules: [{
-      test: /\.(js|jsx)$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader',
-      options: {
-        presets: [
-          "@babel/preset-env",
-          "@babel/preset-react",
-          {
-            plugins: [
-              "@babel/plugin-proposal-class-properties",
-              ["@babel/plugin-proposal-decorators", { "decoratorsBeforeExport": false }],
-              "react-hot-loader/babel"
-            ]
-          }
-        ]
-      }
-    },
+    rules: [
+      {
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
+        options: {
+          rootMode: 'upward',
+        },
+      },
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader']

@@ -19,6 +19,8 @@ A web application that suggests class schedules to students at SCU by asking the
 * [MongoDB](https://www.mongodb.com/) - database
 * [Meteor](https://www.meteor.com/) - web server framework
 * [React](https://reactjs.org/) - front end OOP framework
+* [Jest](https://jestjs.io/) - testing framework
 
 ### Installation Guide
 
+You can run the web server yourself on your home computer. All you need is to install [Node.js](https://nodejs.org/en/) and [Meteor](https://www.meteor.com/install). Simply enter your local copy of the project via the terminal, and type the command `meteor`. On macOS and Linux this should be fairly trivial, but Windows machines may need to do some extra work, i.e. updating the PATH to this command.
