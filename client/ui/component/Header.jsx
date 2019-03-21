@@ -28,11 +28,9 @@ class Header extends Component {
                 SCU Courses
               </span>
             </NavLink>
-            { /* remove the homepage from nav items */
-              delete this.props.links[0] }
             <div className="pl-2 mr-auto">
               { /* create links for remaining nav items (path) */
-                Object.values(this.props.links).map((path, i) =>
+                Object.values(this.props.links).slice(1).map((path, i) =>
                 <NavLink key={ i } to={ `/${path}` }
                          activeClassName="font-weight-bold">
                   <span className="px-2">
