@@ -20,7 +20,21 @@ A web application that suggests class schedules to students at SCU by asking the
 * [Meteor](https://www.meteor.com/) - web server framework
 * [React](https://reactjs.org/) - front end OOP framework
 * [Jest](https://jestjs.io/) - testing framework
+* [Sass](https://sass-lang.com/) - "CSS with superpowers"
 
 ### Installation Guide
 
 You can run the web server yourself on your home computer. All you need is to install [Node.js](https://nodejs.org/en/) and [Meteor](https://www.meteor.com/install). Simply enter your local copy of the project via the terminal, and type the command `meteor`. On macOS and Linux this should be fairly trivial, but Windows machines may need to do some extra work, i.e. updating the PATH to this command.
+
+### Navigation
+
+| Relative path | Purpose |
+|---|---|
+| ./client | Meteor client-side scripts, JavaScript, React, Sass, CSS, other asset files that will only be loaded on the client side. |
+| ./client/assets | Static assets, e.g. multimedia, `.css`. |
+| ./client/scss | Sass `.scss` files. |
+| ./client/ui | React `.jsx` files. |
+| ./client/ui/component | Individual "pieces" or component classes in React. |
+| ./client/ui/page | Pages found in the navbar which put several components together. |
+| ./doc | Output of JSDoc (`npm run docs`) which creates a Javadoc-like documentation in HTML of the codebase. |
+| ./server | Meteor server-side scripts that will only be loaded by the server on the back-end. |
