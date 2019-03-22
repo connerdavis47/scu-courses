@@ -1,6 +1,7 @@
 import { hot } from 'react-hot-loader'
 import React, { Component } from 'react'
 import {
+  Alert,
   Badge,
   Button,
   Form,
@@ -10,6 +11,7 @@ import {
 } from 'reactstrap'
 
 const Degrees = [
+  'Select your Degree',
   'Applied Mathematics',
   'Bioengineering',
   'Civil Engineering',
@@ -80,42 +82,72 @@ const UGRAD_COEN = [
  */
 class Home extends Component {
   
+  constructor(props) {
+    super(props);
+    
+    this.state = {
+      
+      /**
+       * Whether a degree has been chosen from the dropdown, `#inputDegree`.
+       */
+      degreeSelected: false,
+      
+    };
+  }
+  
   render() {
     return (
       <section id="home-form" className="home-form">
         <h2 className="mb-4">Tell us a little about yourself.</h2>
         <Form className="border p-4">
           <FormGroup>
-            <Label for="inputEmail">Email</Label>
-            <Input type="email" name="email" id="inputEmail" />
-          </FormGroup>
-          <FormGroup>
             <Label for="inputDegree">Degree Program</Label>
-            <Input type="select" name="degree" id="inputDegree">
+            <Input type="select" name="degree" id="inputDegree"
+                   onChange={ this.toggleDegreeSelected }>
               { Object.values(Degrees).map((degree, i) =>
                 <option key={ i } name={ degree }>{ degree }</option>
               )}
             </Input>
           </FormGroup>
-          <FormGroup>
-            <Label>Select all the classes you've already taken.</Label>
-            <div className="home-form-courses d-flex flex-wrap">
-              { Object.values(UGRAD_COEN).map((course, i) =>
-                <Badge key={ i } color="light" className="m-1 p-2 border"
-                       onClick={ this.toggleInputCourse }>
-                  { ` ${course}` }
-                </Badge>
-              )}
+          { this.state.degreeSelected &&
+            <FormGroup>
+              <Label>Select classes you've already taken.</Label>
+              <div className="home-form-courses d-flex flex-wrap">
+                { Object.values(UGRAD_COEN).map((course, i) =>
+                  <Badge key={ i } color="light" className="m-1 p-2 border"
+                         onClick={ this.toggleOneCourse }>
+                    { ` ${course}` }
+                  </Badge>
+                )}
+              </div>
+            </FormGroup>
+          }
+          { this.state.degreeSelected &&
+            <div>
+              <hr />
+              <Button outline color="success">Suggest Schedules</Button>
             </div>
-          </FormGroup>
-          <hr />
-          <Button outline color="success">Suggest Schedules</Button>
+          }
         </Form>
       </section>
     )
   }
   
-  toggleInputCourse( e ) {
+  /**
+   * @public
+   * Once the user has selected their degree, update state so the next stage of
+   * the form will roll out.
+   */
+  toggleDegreeSelected = () => this.setState({ degreeSelected: true, });
+  
+  /**
+   * @public
+   * Toggles the active state of a course badge in this form. Badges colored
+   * brand primary are considered active, light gray inactive.
+   *
+   * @param e The badge to toggle to gray or brand primary.
+   */
+  toggleOneCourse( e ) {
     const options = [ 'badge-primary', 'badge-light' ];
     options.forEach(color => e.target.classList.toggle(color));
   }
