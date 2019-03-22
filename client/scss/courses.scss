@@ -1,5 +1,7 @@
 /* Global */
 
+$brand-primary: #b30738;
+
 h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
 }
@@ -12,10 +14,15 @@ h1,h2,h3,h4,h5,h6 {
 
 /* Home.jsx */
 
-.home-form-courses .badge {
-  flex: 1 0 22%;
-}
+.home-degree-form {
 
-.badge {
-  cursor: pointer;
+  .badge {
+    cursor: pointer;
+    flex: 1 0 22%;
+
+    &:hover {
+      box-shadow: 0 0 1px $brand-primary;
+    }
+  }
+
 }
