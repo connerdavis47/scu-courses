@@ -1,11 +1,9 @@
 import { hot } from 'react-hot-loader'
 import React, { Component } from 'react'
 import {
-  Alert,
   Badge,
   Button,
   Form,
-  FormGroup,
   Label,
   Input,
 } from 'reactstrap'
@@ -147,13 +145,6 @@ class Home extends Component {
                 return this.renderFormExtra();
             }
           })() }
-          { /* display submit once on the last stage */
-            this.state.formState === FormState.EXTRA &&
-            <div>
-              <hr />
-              <Button outline color="success">Suggest Schedules</Button>
-            </div>
-          }
         </Form>
       </section>
     )
@@ -161,14 +152,16 @@ class Home extends Component {
   
   renderFormNav() {
     return (
-      <div className="d-flex justify-content-between mt-4">
+      <div className="d-flex justify-content-between border-top mt-4 pt-4">
         <Button outline color="danger"
                 onClick={ () => { this.updateFormState(false) } }>
           <i className="fas fa-arrow-left pr-2"></i> Go back
         </Button>
         <Button outline color="success"
                 onClick={ () => { this.updateFormState(true) } }>
-          Next <i className="fas fa-arrow-right pl-2"></i>
+          { this.state.formState === FormState.EXTRA ?
+            'Get schedules' : 'Next' }
+          <i className="fas fa-arrow-right pl-2"></i>
         </Button>
       </div>
     )
@@ -176,7 +169,7 @@ class Home extends Component {
   
   renderFormDegree() {
     return (
-      <FormGroup>
+      <div>
         <Label for="inputDegree">Degree Program</Label>
         <Input type="select" name="degree" id="inputDegree"
                onChange={ () => { this.updateFormState(true) } }>
@@ -184,13 +177,13 @@ class Home extends Component {
             <option key={ i } name={ degree }>{ degree }</option>
           )}
         </Input>
-      </FormGroup>
+      </div>
     );
   }
   
   renderFormCore() {
     return (
-      <FormGroup>
+      <div>
         <Label>Select University Core you've completed.</Label>
         <div className="d-flex flex-wrap">
           { Object.values(UGRAD_CORE).map((course, i) =>
@@ -201,13 +194,13 @@ class Home extends Component {
           )}
         </div>
         { this.renderFormNav() }
-      </FormGroup>
+      </div>
     );
   }
   
   renderFormMajor() {
     return (
-      <FormGroup>
+      <div>
         <Label>And pick the degree courses you've already finished.</Label>
         <div className="home-form-courses d-flex flex-wrap">
           { Object.values(UGRAD_COEN).map((course, i) =>
@@ -218,15 +211,17 @@ class Home extends Component {
           )}
         </div>
         { this.renderFormNav() }
-      </FormGroup>
+      </div>
     );
   }
   
   renderFormExtra() {
     return (
-      <FormGroup>
-        <Label>Finally, choose any convenience filters you'd also like to include.</Label>
-      </FormGroup>
+      <div>
+        <Label>Mess with some of these other cool filters.</Label>
+        
+        { this.renderFormNav() }
+      </div>
     );
   }
   
