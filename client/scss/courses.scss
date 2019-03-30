@@ -1,3 +1,28 @@
+/* Global */
+
+$brand-primary: #b30738;
+
 h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
+}
+
+/* Header.jsx */
+
+.header-scu {
+  min-height: auto;
+}
+
+/* Home.jsx */
+
+.home-degree-form {
+
+  .badge {
+    cursor: pointer;
+    flex: 1 0 22%;
+
+    &:hover {
+      box-shadow: 0 0 1px $brand-primary;
+    }
+  }
+
 }
