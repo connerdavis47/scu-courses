@@ -150,18 +150,21 @@ class Home extends Component {
     )
   }
   
+  
+
+  
   renderFormNav() {
     return (
       <div className="d-flex justify-content-between border-top mt-4 pt-4">
         <Button outline color="danger"
                 onClick={ () => { this.updateFormState(false) } }>
-          <i className="fas fa-arrow-left pr-2"></i> Go back
+          <i className="fas fa-arrow-left pr-2"> </i> Go back
         </Button>
         <Button outline color="success"
                 onClick={ () => { this.updateFormState(true) } }>
           { this.state.formState === FormState.EXTRA ?
             'Get schedules' : 'Next' }
-          <i className="fas fa-arrow-right pl-2"></i>
+          <i className="fas fa-arrow-right pl-2"> </i>
         </Button>
       </div>
     )
