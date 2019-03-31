@@ -28,3 +28,30 @@ h1,h2,h3,h4,h5,h6 {
   }
 
 }
+
+/* Classes.jsx */
+
+.classes-course {
+  background-color: lighten(#dee2e6, 11%);
+  list-style-type: none;
+
+  .badge-primary {
+    border-radius: .25rem 0 0 .25rem;
+    width: 5rem;
+  }
+
+  .badge-light {
+    border-radius: 0;
+    font-size: 100%;
+    width: 7.5rem;
+  }
+
+  &:hover {
+    background-color: lighten(#dee2e6, 10%);
+    cursor: pointer;
+
+    .badge-primary {
+      background-color: lighten($brand-primary, 5%);
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { hot } from 'react-hot-loader'
 import React, { Component } from 'react'
 import {
-  Button, Form, FormGroup, InputGroup, InputGroupAddon, Label, Input,
+  Badge, Button, Form, FormGroup, InputGroup, InputGroupAddon, Label, Input,
 } from 'reactstrap';
 
 class Classes extends Component {
@@ -22,8 +22,10 @@ class Classes extends Component {
       <div>
         <h1>Classes</h1>
         { this.renderSearchForm() }
-        <div className="border my-4 p-3">
-          { this.state.results && this.state.results }
+        <div className="border my-4 p-4">
+          <ul className="m-0 p-0">
+            { this.state.results && this.state.results }
+          </ul>
         </div>
       </div>
     )
@@ -31,7 +33,7 @@ class Classes extends Component {
   
   renderSearchForm = () => {
     return (
-      <Form onSubmit={ this.search }>
+      <Form className="my-4" onSubmit={ this.search }>
         <InputGroup>
           <Input type="text"
                  id="formQ"
@@ -70,10 +72,36 @@ class Classes extends Component {
         });
       return resolve;
     }).catch(err => console.warn(err));
+    console.log(res);
     
     this.setState({
       results: res.map((course, i) => (
-        <p key={ i }>{ course.subject_descr }</p>
+        <li className="classes-course mb-2"
+            key={ i }>
+          <InputGroup className="align-items-center">
+            <InputGroupAddon addonType="prepend">
+              <Badge color="primary"
+                     className="p-3 font-weight-light">
+                <small>#</small> { course.class_nbr }
+              </Badge>
+            </InputGroupAddon>
+            <InputGroupAddon addonType="prepend">
+              <Badge color="light"
+                     className="p-3 font-weight-light">
+                { course.subject } { course.catalog_nbr }
+              </Badge>
+            </InputGroupAddon>
+            <div className="d-flex flex-grow-1 justify-content-between px-5">
+              <div>{ course.class_descr }</div>
+              <div>{ course.mtg_days_1 } { course.mtg_time_beg_1 } - { course.mtg_time_end_1 }</div>
+            </div>
+            <InputGroupAddon addonType="append">
+              <Badge color="success" className="p-2 font-weight-light">
+                <i className="fas fa-plus"> </i>
+              </Badge>
+            </InputGroupAddon>
+          </InputGroup>
+        </li>
       )),
     })
   };
