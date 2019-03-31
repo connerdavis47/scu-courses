@@ -2,13 +2,13 @@ import { hot } from 'react-hot-loader'
 import React from 'react'
 import {
   BrowserRouter as Router,
-  Route
+  Route,
 } from 'react-router-dom'
 
-import Header from './component/Header'
-import Home from './page/Home'
-import Classes from './page/Classes'
-import Schedules from './page/Schedules'
+import Header from 'imports/ui/component/Header'
+import Home from 'imports/ui/page/Home'
+import Classes from 'imports/ui/page/Classes'
+import Schedules from 'imports/ui/page/Schedules'
 
 /**
  * Master index of routes with links in the SPA header. Maps the path of the
