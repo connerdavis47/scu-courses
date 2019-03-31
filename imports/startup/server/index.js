@@ -1,7 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 
 import Degrees from 'imports/api/degrees/degrees';
-import request from 'request';
 import rp from 'request-promise';
 
 const scuApiRoot = 'https://www.scu.edu/apps/ws/courseavail';
@@ -17,12 +16,12 @@ Meteor.startup(() => {
      * @param text  The input text, which may be anything, i.e., class title.
      * @returns {Promise<T>}  Once the POST request has been completed.
      */
-    search({ text: text, }) {
+    search({ q: q, }) {
       return rp({
         method: 'POST',
         uri: `${scuApiRoot}/search/4060/ugrad`,
         formData: {
-          q: text,
+          q: q,
           maxRes: 50,
         },
       }).then(body => {
@@ -32,8 +31,6 @@ Meteor.startup(() => {
     },
   
   });
-  
-  
   
   // check to see if degree requirements API has yet to be populated with data
   if (typeof Degrees.findOne({}) === 'undefined') {

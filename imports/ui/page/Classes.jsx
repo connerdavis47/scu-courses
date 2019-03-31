@@ -1,5 +1,8 @@
 import { hot } from 'react-hot-loader'
 import React, { Component } from 'react'
+import {
+  Button, Form, FormGroup, InputGroup, InputGroupAddon, Label, Input,
+} from 'reactstrap';
 
 class Classes extends Component {
   
@@ -8,32 +11,61 @@ class Classes extends Component {
     
     this.state = {
       results: undefined,
+      form: {
+        q: '',
+      }
     }
-  }
-  
-  componentDidMount() {
-    if (typeof this.state.results === 'undefined') this.search();
   }
   
   render() {
     return (
       <div>
         <h1>Classes</h1>
-        { this.state.results }
+        { this.renderSearchForm() }
+        <div className="border my-4 p-3">
+          { this.state.results && this.state.results }
+        </div>
       </div>
     )
   }
   
-  search = async() => {
+  renderSearchForm = () => {
+    return (
+      <Form>
+        <InputGroup>
+          <Input type="text" id="searchQ" name="q"
+                 onChange={ this.changeHandler } />
+          <InputGroupAddon addonType="append">
+            <Button color="primary" onClick={ () => { this.search() } }>
+              <i className="fas fa-search"> </i>
+            </Button>
+          </InputGroupAddon>
+        </InputGroup>
+      </Form>
+    )
+  };
+  
+  changeHandler = ( event ) => {
+    this.setState({
+      form: {
+        [event.target.name]: event.target.value,
+      },
+    });
+  };
+  
+  search = async( ) => {
     let res = await new Promise((resolve, reject) => {
+      console.log(this.state);
       Meteor.call('search',
-        { text: 'ENVS 21' },
+        {
+          q: this.state.form.q,
+        },
         (err, response) => {
           if (err) return reject(err);
           resolve(response);
         });
       return resolve;
-    });
+    }).catch(err => console.warn(err));
     
     console.log(res);
     
@@ -42,7 +74,7 @@ class Classes extends Component {
         <p key={ i }>{ course.subject_descr }</p>
       )),
     })
-  }
+  };
   
 }
 export default hot(module)(Classes)
