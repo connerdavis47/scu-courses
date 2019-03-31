@@ -31,12 +31,15 @@ class Classes extends Component {
   
   renderSearchForm = () => {
     return (
-      <Form>
+      <Form onSubmit={ this.search }>
         <InputGroup>
-          <Input type="text" id="searchQ" name="q"
+          <Input type="text"
+                 id="formQ"
+                 name="q"
                  onChange={ this.changeHandler } />
           <InputGroupAddon addonType="append">
-            <Button color="primary" onClick={ () => { this.search() } }>
+            <Button color="primary"
+                    onClick={ this.search }>
               <i className="fas fa-search"> </i>
             </Button>
           </InputGroupAddon>
@@ -53,9 +56,10 @@ class Classes extends Component {
     });
   };
   
-  search = async( ) => {
+  search = async ( event )  => {
+    event.preventDefault();
+    
     let res = await new Promise((resolve, reject) => {
-      console.log(this.state);
       Meteor.call('search',
         {
           q: this.state.form.q,
@@ -66,8 +70,6 @@ class Classes extends Component {
         });
       return resolve;
     }).catch(err => console.warn(err));
-    
-    console.log(res);
     
     this.setState({
       results: res.map((course, i) => (
