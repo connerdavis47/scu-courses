@@ -4,6 +4,8 @@ import {
   Badge, Button, Form, FormGroup, InputGroup, InputGroupAddon, Label, Input,
 } from 'reactstrap';
 
+import Course from 'imports/ui/component/Course';
+
 class Classes extends Component {
   
   constructor(props) {
@@ -76,32 +78,10 @@ class Classes extends Component {
     
     this.setState({
       results: res.map((course, i) => (
-        <li className="classes-course mb-2"
-            key={ i }>
-          <InputGroup className="align-items-center">
-            <InputGroupAddon addonType="prepend">
-              <Badge color="primary"
-                     className="p-3 font-weight-light">
-                <small>#</small> { course.class_nbr }
-              </Badge>
-            </InputGroupAddon>
-            <InputGroupAddon addonType="prepend">
-              <Badge color="light"
-                     className="p-3 font-weight-light">
-                { course.subject } { course.catalog_nbr }
-              </Badge>
-            </InputGroupAddon>
-            <div className="d-flex flex-grow-1 justify-content-between px-5">
-              <div>{ course.class_descr }</div>
-              <div>{ course.mtg_days_1 } { course.mtg_time_beg_1 } - { course.mtg_time_end_1 }</div>
-            </div>
-            <InputGroupAddon addonType="append">
-              <Badge color="success" className="p-2 font-weight-light">
-                <i className="fas fa-plus"> </i>
-              </Badge>
-            </InputGroupAddon>
-          </InputGroup>
-        </li>
+        <Course
+          key={ i }
+          data={ course }
+        />
       )),
     })
   };

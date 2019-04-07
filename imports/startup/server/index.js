@@ -19,7 +19,7 @@ Meteor.startup(() => {
     search({ q: q, }) {
       return rp({
         method: 'POST',
-        uri: `${scuApiRoot}/search/4060/ugrad`,
+        uri: `${scuApiRoot}/search/4040/ugrad`,
         formData: {
           q: q,
           maxRes: 50,

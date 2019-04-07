@@ -53,5 +53,9 @@ h1,h2,h3,h4,h5,h6 {
     .badge-primary {
       background-color: lighten($brand-primary, 5%);
     }
+
+    .badge-light {
+      text-decoration: underline;
+    }
   }
 }
