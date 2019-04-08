@@ -1,11 +1,13 @@
 import React, { Component, } from 'react'
-import {
-  Button, Form, InputGroup, InputGroupAddon, Input,
-} from 'reactstrap';
+import { Button, Form, InputGroup, InputGroupAddon, Input, } from 'reactstrap'
 import { hot } from 'react-hot-loader'
 
 import Course from 'imports/ui/component/Course';
 
+/**
+ * A page that lets students search for classes that are currently available and
+ * manually assemble a schedule.
+ */
 class Classes extends Component {
   
   constructor( props ) {
@@ -26,7 +28,8 @@ class Classes extends Component {
         { this.renderSearchForm() }
         <div className="border my-4 p-4">
           <ul className="m-0 p-0">
-            { this.state.results && this.state.results }
+            { this.state.results &&
+              this.state.results }
           </ul>
         </div>
       </div>
@@ -35,7 +38,8 @@ class Classes extends Component {
   
   renderSearchForm = ( ) => {
     return (
-      <Form className="my-4" onSubmit={ this.search }>
+      <Form className="my-4"
+            onSubmit={ this.search }>
         <InputGroup>
           <Input type="text"
                  id="formQ"
@@ -64,14 +68,14 @@ class Classes extends Component {
     event.preventDefault();
     
     let res = await new Promise((resolve, reject) => {
-      Meteor.call('search',
-        {
+      Meteor.call('search', {
           q: this.state.form.q,
-        },
-        (err, response) => {
+        }, (err, response) => {
           if (err) return reject(err);
           resolve(response);
-        });
+        }
+      );
+      
       return resolve;
     }).catch(err => console.warn(err));
     console.log(res);

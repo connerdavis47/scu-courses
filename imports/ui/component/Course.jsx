@@ -1,10 +1,13 @@
-import React, { Component, } from 'react';
-import { Badge, InputGroup, InputGroupAddon, } from 'reactstrap';
-import { hot } from 'react-hot-loader/index';
+import React, { Component, } from 'react'
+import { Badge, InputGroup, InputGroupAddon, } from 'reactstrap'
+import { hot } from 'react-hot-loader/index'
 
 /**
- * One course listed on the Classes page, which are in search results as well
- * as the running list of any courses the user has chosen to hold onto.
+ * One course listed on the Classes page, found in search results as well as
+ * the running list of courses the user has chosen to hold onto.
+ *
+ * @param data  The course data obtained via JSON request by the server.
+ * @param key   The key used to uniquely identify this course in a list.
  */
 class Course extends Component {
   
@@ -18,8 +21,10 @@ class Course extends Component {
   
   render( ) {
     return (
-      <li className={ `classes-course mb-2 ${this.state.expanded ? 'classes-course-expanded' : '' }` }
-          key={ this.props.key } onClick={ () => { this.expandCollapse() } }>
+      <li className={ `classes-course mb-2
+            ${this.state.expanded && 'classes-course-expanded'} `}
+          key={ this.props.key }
+          onClick={ () => { this.expandCollapse() } }>
         <div>
           <InputGroup className="align-items-center">
             <InputGroupAddon addonType="prepend">
