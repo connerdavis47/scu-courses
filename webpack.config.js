@@ -1,3 +1,5 @@
+const path = require('path');
+const polyfill = require('babel-polyfill');
 const webpack = require('webpack');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -5,12 +7,20 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const meteorExternals = require('webpack-meteor-externals');
 
 const clientConfig = {
-  entry: './client/main.jsx',
+  entry: ['babel-polyfill', 'client/main.jsx'],
   mode: 'development',
   stats: 'verbose',
   
+  node: {
+    fs: 'empty',
+    net: 'empty',
+    tls: 'empty',
+  },
+  
   // allows us to omit .js, .jsx file extensions in import statements
   resolve: {
+    // allows us to utilize absolute paths in import statements versus relative
+    modules: [ path.resolve(__dirname, '.'), 'node_modules', ],
     extensions: [ '.js', '.jsx', ],
   },
   
@@ -79,17 +89,28 @@ const clientConfig = {
 };
 
 const serverConfig = {
-  entry: './server/main.js',
+  entry: 'server/main.js',
   mode: 'development',
   stats: 'verbose',
   
   target: 'node',
+  
+  // allows us to omit .js, .jsx file extensions in import statements
+  resolve: {
+    modules: [ path.resolve(__dirname, '.'), 'node_modules', ],
+    extensions: [ '.js', '.jsx', ],
+  },
   
   devServer: {
     hot: true,
   },
   
   externals: [
+    // enables JSDom, which requires platform-dependent package canvas
+    {
+      canvas: 'commonjs canvas',
+    },
+    // enables Meteor class imports
     meteorExternals(),
   ],
 };

@@ -1,6 +1,10 @@
+@import '../assets/brand.scu.css';
+
 /* Global */
 
 $brand-primary: #b30738;
+$brand-danger: #dc3545;
+$brand-success: #28a745;
 
 h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
@@ -25,4 +29,61 @@ h1,h2,h3,h4,h5,h6 {
     }
   }
 
+}
+
+/* Classes.jsx */
+
+.classes-course {
+  background-color: lighten(#dee2e6, 10%);
+  list-style-type: none;
+
+  .badge {
+    border-radius: 0;
+  }
+
+  /* section # */
+  .badge-primary {
+    line-height: 1rem;
+    width: 4rem;
+  }
+
+  /* code */
+  .badge-light {
+    font-size: 100%;
+    width: 8rem;
+  }
+
+  /* seats remaining */
+  .classes-course-seats {
+    width: 2rem;
+  }
+
+  /* btn add to schedule */
+  .text-success:hover {
+    color: lighten($brand-success, 10%);
+  }
+
+  /* btn remove from schedule */
+  .text-danger:hover {
+    color: lighten($brand-danger, 10%);
+  }
+
+  &:hover {
+    background-color: lighten(#dee2e6, 8%);
+    cursor: pointer;
+
+    .badge-primary {
+      background-color: lighten($brand-primary, 5%);
+    }
+
+    .badge-light {
+      text-decoration: underline;
+    }
+  }
+}
+
+.classes-course-expanded {
+  background-color: lighten(#dee2e6, 8%);
+  border-left: .15rem solid $brand-primary;
+  padding: .5rem 0 0 .5rem;
 }

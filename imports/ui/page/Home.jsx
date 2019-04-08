@@ -1,12 +1,6 @@
+import React, { Component, } from 'react'
+import { Badge, Button, Form, Label, Input, } from 'reactstrap'
 import { hot } from 'react-hot-loader'
-import React, { Component } from 'react'
-import {
-  Badge,
-  Button,
-  Form,
-  Label,
-  Input,
-} from 'reactstrap'
 
 const Degrees = [
   'Select your Degree',
@@ -101,12 +95,12 @@ const FormState = Object.freeze({
 });
 
 /**
- * Landing page, which prompts users for basic degree information before
- * attempting to generate schedules.
+ * Landing page, which prompts users for basic degree information the server
+ * will use to generate schedule suggestions.
  */
 class Home extends Component {
   
-  constructor(props) {
+  constructor( props ) {
     super(props);
     
     this.state = {
@@ -121,9 +115,10 @@ class Home extends Component {
     };
   }
   
-  render() {
+  render( ) {
     return (
-      <section id="home-degree-form" className="home-degree-form">
+      <section id="home-degree-form"
+               className="home-degree-form">
         <h2 className="mb-4">Tell us a little about yourself.</h2>
         <Form className="border p-4">
           { (() => {
@@ -150,17 +145,16 @@ class Home extends Component {
     )
   }
   
-  
-
-  
-  renderFormNav() {
+  renderFormNav = ( ) => {
     return (
       <div className="d-flex justify-content-between border-top mt-4 pt-4">
-        <Button outline color="danger"
+        <Button outline
+                color="danger"
                 onClick={ () => { this.updateFormState(false) } }>
           <i className="fas fa-arrow-left pr-2"> </i> Go back
         </Button>
-        <Button outline color="success"
+        <Button outline
+                color="success"
                 onClick={ () => { this.updateFormState(true) } }>
           { this.state.formState === FormState.EXTRA ?
             'Get schedules' : 'Next' }
@@ -168,30 +162,39 @@ class Home extends Component {
         </Button>
       </div>
     )
-  }
+  };
   
-  renderFormDegree() {
+  renderFormDegree = ( ) => {
     return (
       <div>
         <Label for="inputDegree">Degree Program</Label>
-        <Input type="select" name="degree" id="inputDegree"
+        <Input type="select"
+               name="degree"
+               id="inputDegree"
                onChange={ () => { this.updateFormState(true) } }>
           { Object.values(Degrees).map((degree, i) =>
-            <option key={ i } name={ degree }>{ degree }</option>
+            <option
+              key={ i }
+              name={ degree }>
+              { degree }
+            </option>
           )}
         </Input>
       </div>
     );
-  }
+  };
   
-  renderFormCore() {
+  renderFormCore = ( ) => {
     return (
       <div>
         <Label>Select University Core you've completed.</Label>
         <div className="d-flex flex-wrap">
           { Object.values(UGRAD_CORE).map((course, i) =>
-            <Badge key={ `C${i}` } color="light" className="m-1 p-2 border"
-                   onClick={ this.toggleOneCourse }>
+            <Badge
+              key={ `C${i}` }
+              color="light"
+              className="m-1 p-2 border"
+              onClick={ this.toggleOneCourse }>
               { ` ${course}` }
             </Badge>
           )}
@@ -199,16 +202,19 @@ class Home extends Component {
         { this.renderFormNav() }
       </div>
     );
-  }
+  };
   
-  renderFormMajor() {
+  renderFormMajor = ( ) => {
     return (
       <div>
         <Label>And pick the degree courses you've already finished.</Label>
         <div className="home-form-courses d-flex flex-wrap">
           { Object.values(UGRAD_COEN).map((course, i) =>
-            <Badge key={ `M${i}` } color="light" className="m-1 p-2 border"
-                   onClick={ this.toggleOneCourse }>
+            <Badge
+              key={ `M${i}` }
+              color="light"
+              className="m-1 p-2 border"
+              onClick={ this.toggleOneCourse }>
               { ` ${course}` }
             </Badge>
           )}
@@ -216,9 +222,9 @@ class Home extends Component {
         { this.renderFormNav() }
       </div>
     );
-  }
+  };
   
-  renderFormExtra() {
+  renderFormExtra = ( ) => {
     return (
       <div>
         <Label>Mess with some of these other cool filters.</Label>
@@ -226,7 +232,7 @@ class Home extends Component {
         { this.renderFormNav() }
       </div>
     );
-  }
+  };
   
   /**
    * @public
