@@ -1,14 +1,14 @@
-import { hot } from 'react-hot-loader'
-import React, { Component } from 'react'
+import React, { Component, } from 'react'
 import {
-  Badge, Button, Form, FormGroup, InputGroup, InputGroupAddon, Label, Input,
+  Button, Form, InputGroup, InputGroupAddon, Input,
 } from 'reactstrap';
+import { hot } from 'react-hot-loader'
 
 import Course from 'imports/ui/component/Course';
 
 class Classes extends Component {
   
-  constructor(props) {
+  constructor( props ) {
     super(props);
     
     this.state = {
@@ -19,7 +19,7 @@ class Classes extends Component {
     }
   }
   
-  render() {
+  render( ) {
     return (
       <div>
         <h1>Classes</h1>
@@ -33,7 +33,7 @@ class Classes extends Component {
     )
   }
   
-  renderSearchForm = () => {
+  renderSearchForm = ( ) => {
     return (
       <Form className="my-4" onSubmit={ this.search }>
         <InputGroup>
@@ -60,7 +60,7 @@ class Classes extends Component {
     });
   };
   
-  search = async ( event )  => {
+  search = async( event )  => {
     event.preventDefault();
     
     let res = await new Promise((resolve, reject) => {

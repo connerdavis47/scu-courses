@@ -9,41 +9,63 @@ import { hot } from 'react-hot-loader/index';
 class Course extends Component {
   
   constructor( props ) {
-    super( props );
+    super(props);
+    
+    this.state = {
+      expanded: false,
+    };
   }
   
-  render() {
+  render( ) {
     return (
-      <li className="classes-course mb-2" key={ this.props.data.key }>
-        <InputGroup className="align-items-center">
-          <InputGroupAddon addonType="prepend">
-            { this.renderNbr() }
-          </InputGroupAddon>
-          <InputGroupAddon addonType="prepend">
-            { this.renderName() }
-          </InputGroupAddon>
-          <div className="d-flex flex-grow-1 justify-content-between px-5">
-            { this.renderDesc() }
-            { this.renderTime() }
-          </div>
-          <InputGroupAddon addonType="append">
-            { this.renderActions() }
-          </InputGroupAddon>
-        </InputGroup>
+      <li className={ `classes-course mb-2 ${this.state.expanded ? 'classes-course-expanded' : '' }` }
+          key={ this.props.key } onClick={ () => { this.expandCollapse() } }>
+        <div>
+          <InputGroup className="align-items-center">
+            <InputGroupAddon addonType="prepend">
+              { this.renderNbr() }
+              { this.renderName() }
+            </InputGroupAddon>
+            <div className="d-flex flex-grow-1 justify-content-between px-4">
+              { this.renderDesc() }
+              { this.renderTime() }
+            </div>
+            <InputGroupAddon addonType="append">
+              { this.renderSeats() }
+              { this.renderActions() }
+            </InputGroupAddon>
+          </InputGroup>
+          { this.state.expanded &&
+            this.renderExpanded()
+          }
+        </div>
       </li>
     )
   }
   
-  renderNbr = () => {
+  expandCollapse = ( ) => {
+    this.setState({ expanded: !this.state.expanded, });
+  };
+  
+  renderExpanded = ( ) => {
+    return (
+      <div className="p-3">
+        <p>Located in { this.props.data.l_name }.</p>
+        <p>Instructed by { this.props.data.instr_1 }.</p>
+      </div>
+    )
+  };
+  
+  renderNbr = ( ) => {
     return (
       <Badge color="primary"
              className="p-3 font-weight-light">
-        <small>#</small> { this.props.data.class_nbr }
+        { this.props.data.class_nbr }
       </Badge>
     )
   };
   
-  renderName = () => {
+  renderName = ( ) => {
     return (
       <Badge color="light"
              className="p-3 font-weight-light">
@@ -52,7 +74,7 @@ class Course extends Component {
     )
   };
   
-  renderDesc = () => {
+  renderDesc = ( ) => {
     return (
       <div>
         { this.props.data.class_descr }
@@ -60,7 +82,7 @@ class Course extends Component {
     )
   };
   
-  renderTime = () => {
+  renderTime = ( ) => {
     return (
       <div>
         { this.props.data.mtg_days_1 } { this.props.data.mtg_time_beg_1 } -
@@ -69,11 +91,21 @@ class Course extends Component {
     )
   };
   
-  renderActions = () => {
+  renderSeats = ( ) => {
     return (
-      <Badge color="success" className="p-2">
-        <i className="fas fa-plus"> </i>
-      </Badge>
+      <div className="d-flex align-items-center px-2 text-warning">
+        <i className="fas fa-chair"> </i>
+        <span className="pl-1">{ this.props.data.seats_remaining }</span>
+      </div>
+    )
+  };
+  
+  renderActions = ( ) => {
+    return (
+      <div className="d-flex align-items-center mx-3">
+        <i className="fas fa-plus text-success p-1"> </i>
+        <i className="fas fa-minus text-danger ml-1 p-1"> </i>
+      </div>
     )
   };
   

@@ -1,12 +1,6 @@
+import React, { Component, } from 'react'
+import { Badge, Button, Form, Label, Input, } from 'reactstrap'
 import { hot } from 'react-hot-loader'
-import React, { Component } from 'react'
-import {
-  Badge,
-  Button,
-  Form,
-  Label,
-  Input,
-} from 'reactstrap'
 
 const Degrees = [
   'Select your Degree',

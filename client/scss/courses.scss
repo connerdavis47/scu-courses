@@ -32,11 +32,12 @@ h1,h2,h3,h4,h5,h6 {
 /* Classes.jsx */
 
 .classes-course {
-  background-color: lighten(#dee2e6, 11%);
+  background-color: lighten(#dee2e6, 10%);
   list-style-type: none;
 
   .badge-primary {
     border-radius: .25rem 0 0 .25rem;
+    line-height: 1rem;
     width: 5rem;
   }
 
@@ -47,7 +48,7 @@ h1,h2,h3,h4,h5,h6 {
   }
 
   &:hover {
-    background-color: lighten(#dee2e6, 10%);
+    background-color: lighten(#dee2e6, 8%);
     cursor: pointer;
 
     .badge-primary {
@@ -58,4 +59,10 @@ h1,h2,h3,h4,h5,h6 {
       text-decoration: underline;
     }
   }
+}
+
+.classes-course-expanded {
+  background-color: lighten(#dee2e6, 8%);
+  border-left: .15rem solid $brand-primary;
+  padding: .5rem 0 0 .5rem;
 }
