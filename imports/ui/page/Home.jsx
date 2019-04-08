@@ -4,7 +4,6 @@ import { hot } from 'react-hot-loader'
 
 const Degrees = [
   'Select your Degree',
-  'Applied Mathematics',
   'Bioengineering',
   'Civil Engineering',
   'Computer Engineering',

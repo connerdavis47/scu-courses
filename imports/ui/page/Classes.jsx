@@ -68,13 +68,10 @@ class Classes extends Component {
     event.preventDefault();
     
     let res = await new Promise((resolve, reject) => {
-      Meteor.call('search', {
-          q: this.state.form.q,
-        }, (err, response) => {
-          if (err) return reject(err);
-          resolve(response);
-        }
-      );
+      Meteor.call('api.search', { q: this.state.form.q, }, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
       
       return resolve;
     }).catch(err => console.warn(err));

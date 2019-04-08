@@ -1,14 +1,15 @@
-import { Meteor } from 'meteor/meteor';
+import { Meteor } from "meteor/meteor"
+import rp from 'request-promise'
 
-import Degrees from 'imports/api/degrees/degrees';
-import rp from 'request-promise';
+import Degrees from 'imports/api/degrees/degrees'
+import { parsePrograms } from 'imports/startup/server/scrape_degrees';
 
 const scuApiRoot = 'https://www.scu.edu/apps/ws/courseavail';
 
 Meteor.startup(() => {
   
   Meteor.methods({
-  
+    
     /**
      * Queries the CourseAvail JSON API for classes fitting the provided search
      * string and filters.
@@ -16,7 +17,7 @@ Meteor.startup(() => {
      * @param text  The input text, which may be anything, i.e., class title.
      * @returns {Promise<T>}  Once the POST request has been completed.
      */
-    search({ q: q, }) {
+    'api.search'({ q: q, }) {
       return rp({
         method: 'POST',
         uri: `${scuApiRoot}/search/4040/ugrad`,
@@ -29,48 +30,13 @@ Meteor.startup(() => {
         return result.results;
       }).catch(err => { console.warn(err); });
     },
-  
+    
   });
   
   // check to see if degree requirements API has yet to be populated with data
   if (typeof Degrees.findOne({}) === 'undefined') {
     // if so, we need to pull the latest
-    
-    // add compatible degrees
-    const DegreePages = [
-      /*'Bioengineering',
-      'CivilEngineering',*/
-      'ComputerEngineering',
-      /*'ElectricalEngineering',
-      'GeneralEngineering',
-      'MechanicalEngineering',*/
-    ];
-    
-    // query each page for its data
-    /*for (let path of DegreePages) {
-      JSDOM.fromURL(
-        `https://www.scu.edu/bulletin/undergraduate/chapter-5/${path}.html`
-      ).then(dom => {
-        let sec = dom.window.document.querySelector('.markdown-section');
-  
-        console.log(
-          `---- Degree Program: ${sec.querySelector('h1').innerHTML}`
-        );
-  
-        for (let item of sec.children) {
-          if (item.tagName.toLowerCase() === 'p' && item.innerHTML.startsWith('<strong>')) {
-            if (item.innerHTML.indexOf('Bachelor of ') < 0) {
-              console.log('Category: ' + item.children[0].innerHTML);
-            }
-          } else if (item.tagName.toLowerCase() === 'ul') {
-            for (let req of item.children) {
-              console.log('--> Requirement: ' + req.textContent);
-            }
-          }
-        }
-      });
-    }*/
-    
+    parsePrograms();
   }
-
+  
 });

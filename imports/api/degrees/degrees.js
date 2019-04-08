@@ -1,5 +1,5 @@
-import { Mongo } from 'meteor/mongo';
-import SimpleSchema from 'simpl-schema';
+import { Mongo } from 'meteor/mongo'
+import SimpleSchema from 'simpl-schema'
 
 const Degrees = new Mongo.Collection('degrees');
 
@@ -37,6 +37,26 @@ const schema = new SimpleSchema({
     label: 'Requirements',
   },
   
+});
+Degrees.schema = schema;
+
+Meteor.methods({
+
+  'degrees.insert'( degree ) {
+    try {
+      Degrees.schema.validate(degree);
+    } catch (e) {
+      throw new Meteor.Error('degreesInsert',
+        `Did not validate: ${JSON.stringify(degree)} `);
+    }
+    
+    Degrees.insert(degree, (err, res) => {
+      if (err) throw new Meteor.Error('degreesInsert', err);
+      
+      console.log(`degreesInsert: success => ${res}`);
+    });
+  }
+
 });
 
 export default Degrees;

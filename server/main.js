@@ -3,9 +3,5 @@
   server. In other words, none of the client files.
  */
 
-import { Meteor } from 'meteor/meteor';
-
-import 'imports/api/degrees/degrees';
-import 'imports/startup/server/index';
-
-Meteor.startup(() => { });
+import 'imports/api/degrees/degrees'
+import 'imports/startup/server/index'
