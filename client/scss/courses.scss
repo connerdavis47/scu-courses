@@ -3,6 +3,8 @@
 /* Global */
 
 $brand-primary: #b30738;
+$brand-danger: #dc3545;
+$brand-success: #28a745;
 
 h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
@@ -35,16 +37,35 @@ h1,h2,h3,h4,h5,h6 {
   background-color: lighten(#dee2e6, 10%);
   list-style-type: none;
 
-  .badge-primary {
-    border-radius: .25rem 0 0 .25rem;
-    line-height: 1rem;
-    width: 5rem;
+  .badge {
+    border-radius: 0;
   }
 
+  /* section # */
+  .badge-primary {
+    line-height: 1rem;
+    width: 4rem;
+  }
+
+  /* code */
   .badge-light {
-    border-radius: 0;
     font-size: 100%;
-    width: 7.5rem;
+    width: 8rem;
+  }
+
+  /* seats remaining */
+  .classes-course-seats {
+    width: 2rem;
+  }
+
+  /* btn add to schedule */
+  .text-success:hover {
+    color: lighten($brand-success, 10%);
+  }
+
+  /* btn remove from schedule */
+  .text-danger:hover {
+    color: lighten($brand-danger, 10%);
   }
 
   &:hover {

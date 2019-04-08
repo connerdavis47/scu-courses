@@ -49,9 +49,9 @@ class Course extends Component {
   
   renderExpanded = ( ) => {
     return (
-      <div className="p-3">
-        <p>Located in { this.props.data.l_name }.</p>
-        <p>Instructed by { this.props.data.instr_1 }.</p>
+      <div className="py-3">
+        <p>Room: { this.props.data.mtg_facility_1 }<br />
+          Instructor: { this.props.data.instr_1 }.</p>
       </div>
     )
   };
@@ -59,7 +59,7 @@ class Course extends Component {
   renderNbr = ( ) => {
     return (
       <Badge color="primary"
-             className="p-3 font-weight-light">
+             className="px-2 py-3 font-weight-light">
         { this.props.data.class_nbr }
       </Badge>
     )
@@ -68,7 +68,7 @@ class Course extends Component {
   renderName = ( ) => {
     return (
       <Badge color="light"
-             className="p-3 font-weight-light">
+             className="py-3 font-weight-light">
         { this.props.data.subject } { this.props.data.catalog_nbr }
       </Badge>
     )
@@ -93,7 +93,7 @@ class Course extends Component {
   
   renderSeats = ( ) => {
     return (
-      <div className="d-flex align-items-center px-2 text-warning">
+      <div className="classes-course-seats d-flex align-items-center justify-content-center text-warning">
         <i className="fas fa-chair"> </i>
         <span className="pl-1">{ this.props.data.seats_remaining }</span>
       </div>
