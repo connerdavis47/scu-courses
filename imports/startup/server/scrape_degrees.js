@@ -4,8 +4,8 @@ import Degrees from 'imports/api/degrees/degrees'
 
 const DegreePages = [
   //'Bioengineering',
-  //'CivilEngineering',
-  'ComputerEngineering',
+  'CivilEngineering',
+  //'ComputerEngineering',
   //'ElectricalEngineering',
   //'GeneralEngineering',
   //'MechanicalEngineering',
@@ -15,8 +15,9 @@ let scrapeDegrees = ( ) => {
   parsePrograms()
     .then(result => {
       result.forEach((program) => {
-        Degrees.insert(program);
-        console.log(Degrees.findOne({ title: program.title }));
+        console.log(program);
+        //Degrees.insert(program);
+        //console.log(Degrees.findOne({ title: program.title }));
       });
     }).catch(error => {
       console.log('err: ' + error);
@@ -29,13 +30,8 @@ let parsePrograms = async ( ) => {
   // query each page for its data
   for (let path of DegreePages) {
     let result = await parseProgram(path);
-    let degree = {
-      title: result,
-      prefix: '',
-      reqs: { },
-    };
-    
-    degrees.push(degree);
+    for (let degree of result)
+      degrees.push(degree);
   }
   
   return degrees;
@@ -46,27 +42,36 @@ let parseProgram = ( path ) => {
     JSDOM.fromURL(
       `https://www.scu.edu/bulletin/undergraduate/chapter-5/${path}.html`
     ).then(dom => {
-      const html = dom.window.document.querySelector('.markdown-section');
+      const html = dom.window.document.body.querySelector('.markdown-section');
       
-      let result = {
-        title: parseProgramTitle(html.querySelector('h1').innerHTML),
-        reqs: [],
-      };
+      // some pages have more than one degree
+      let degrees = [
+        {
+          title: parseProgramTitle(html.querySelector('h1').innerHTML),
+          reqs: [],
+        },
+      ];
       
       for (let item of html.children) {
-        if (item.tagName.toLowerCase() === 'p' &&
-          item.innerHTML.startsWith('<strong>')) {
-          if (item.innerHTML.indexOf('Bachelor of ') < 0) {
-            // console.log('Category: ' + item.children[0].innerHTML);
+        if (item.innerHTML.toLowerCase().indexOf('minor') > -1) break;
+        if (item.nodeName.toLowerCase() === 'p' &&
+          item.firstChild.nodeName.toLowerCase() === 'strong') {
+          if (item.innerHTML.match('Bachelor of ')) {
+            if (degrees[0].reqs.length > 0) {
+              degrees.push({
+                title: item.innerHTML.substr(12),
+                reqs: [],
+              });
+            }
           }
         } else if (item.tagName.toLowerCase() === 'ul') {
           for (let req of item.children) {
-            parseRequirement(result.reqs, req.textContent);
+            parseRequirement(degrees[degrees.length-1].reqs, req.textContent);
           }
         }
       }
       
-      resolve(result);
+      resolve(degrees);
     });
   });
 };
@@ -94,17 +99,6 @@ let parseRequirement = ( list, str ) => {
   // remove space at the end if it exists
   if (str.endsWith(' ')) str = str.substr(0, str.length - 1);
   
-  // try to find an OR implication (a slash /, or the word "or")
-  /*if (str.indexOf('or') > -1 || str.indexOf('OR') > -1) {
-    let splits = str.split(' or ');
-    
-    splits.forEach(it => {
-      if (it.startsWith(' ')) it = it.substr(1);
-      if (it.endsWith(' ')) it = it.substr(0, it.length - 1);
-      console.log(it + ':' + isCourse(it));
-    });
-  }*/
-  
   // otherwise, perhaps it's an AND (a comma , in virtually all cases)
   if (str.indexOf(',') > -1) {
     let splits = str.split(',');
@@ -118,24 +112,36 @@ let parseRequirement = ( list, str ) => {
         it = prefix + ' ' + it;
       
       if (isCourse(it))
-        console.log(it);
+        list.push(it);
     });
     
     return;
   }
   
-  // otherwise, let's see if it's just one course
-  
-  // if none of the rest is true, it's a long-form description
-  if (isCourse(str)) {
-    console.log(str);
+  // try to find an OR implication (a slash /, or the word "or")
+  if (str.indexOf('or') > -1 || str.indexOf('OR') > -1) {
+    let splits = str.split(' or ');
+    let ors = [ ];
+    
+    splits.forEach(it => {
+      if (it.startsWith(' ')) it = it.substr(1);
+      if (it.endsWith(' ')) it = it.substr(0, it.length - 1);
+      
+      if (isCourse(it)) ors.push(it);
+    });
+    
+    if (ors.length === 1) ors = ors[0];
+    
+    list.push(ors);
+    return;
   }
   
-  //list.push(str);
+  if (isCourse(str))
+    list.push(str);
 };
 
 let isCourse = ( str ) => {
-  return /^((?!(or|and))\w){0,4} ?([0-9]){1,3}$/.test(str);
+  return /^((?!(or|and))\w){0,4} ?([0-9]){1,3}L?$/.test(str);
 };
 
 export { scrapeDegrees, };
