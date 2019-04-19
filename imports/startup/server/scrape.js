@@ -49,20 +49,20 @@ let parseDOM = ( dom ) => {
         return;
       
       // find the end of the section and slice at that point
-      let section = nodes.slice(i + 1);
-      section.some((elem, j) => {
+      let categories = nodes.slice(i + 1);
+      categories.some((elem, j) => {
         if (categoryHeader(elem)) {
-          section = section.slice(0, j);
+          categories = categories.slice(0, j);
           return true;
         }
       });
       
       // try to parse several degree programs on one page
       if (elemContains(elem, "Requirements for the Majors"))
-        parseDegrees(section);
+        parseDegrees(categories);
       // try to parse a page with only one degree program
       else if (elemContains(elem, "Requirements for the Major"))
-        degrees[0].categories = parseDegree(section);
+        degrees[0].categories = parseDegree(Object.values(categories));
     }
   });
   
@@ -89,13 +89,11 @@ let parseDegrees = ( elems ) => {
 let parseDegree = ( elems ) => {
   let categories = [ ];
   
-  Object.values(elems).some((elem, i) => {
-    if (sectionHeader(elem))
-    {
-      let section = Object.values(elems).slice(i + 1);
-      section.some((sElem, j) => {
-        if (sectionHeader(sElem))
-        {
+  elems.some((elem, i) => {
+    if (sectionHeader(elem)) {
+      let section = elems.slice(i + 1);
+      section.some((elem, j) => {
+        if (sectionHeader(elem)) {
           section = section.slice(0, j);
           return true;
         }
@@ -122,7 +120,10 @@ let parseSection = ( elems ) => {
     {
       if (elemTag(elems[0], 'p') && elemTag(elems[1], 'ul'))
       {
-        console.log('--> Complementary section');
+        reqs.push({
+          option: elems[0].textContent,
+          reqs: parseCourseList(elems[1]),
+        });
         elems.shift();
         elems.shift();
       }
@@ -130,25 +131,34 @@ let parseSection = ( elems ) => {
       {
         if (elems[1].textContent.endsWith(':'))
         {
-          console.log('--> List of courses');
+          reqs.push(parseCourseList(elems[0]));
           elems.shift();
         }
         else
         {
-          console.log('--> Supplementary section');
+          reqs = reqs.concat(parseCourseList(elems[0]));
           elems.shift();
           elems.shift();
         }
       }
       else if (elemTag(elems[0], 'ul'))
       {
-        console.log('--> List of courses');
+        reqs = reqs.concat(parseCourseList(elems[0]));
         elems.shift();
       }
       else if (elemTag(elems[0], 'p'))
       {
-        console.log('--> Text block');
+        let text = elems[0].outerHTML;
+        
         elems.shift();
+        while (elems.length > 0) {
+          text += elems[0].outerHTML;
+          elems.shift();
+        }
+        
+        reqs.push({
+          text: text,
+        });
       }
       else break;
     }
@@ -169,36 +179,39 @@ let parseCourseList = ( ul ) => {
 let parseCourseListItem = ( li ) => {
   let courses = [ ];
   
-  li = li.textContent;
-  li = li.replace(/[\n\r]+/g, ' ');
-  li = li.replace(/[()]+/g, '');
+  let text = li.textContent;
+  text = text.replace(/[\n\r]+/g, ' ');
+  text = text.replace(/[()]+/g, '');
   
-  if (li.endsWith(' '))
-    li = li.slice(0, -1);
+  if (text.endsWith(' '))
+    text = text.slice(0, -1);
   
-  if (course(li))
+  if (course(text))
   {
-    courses.push(li);
+    courses.push(text);
     return courses;
   }
   else
   {
-    if (li.startsWith('One course from '))
+    if (text.startsWith('One course from '))
     {
       courses.push([]);
-      parseCourseExpression(courses[0], li.substr('One course from '.length));
+      parseCourseExpression(courses[0], text.substr('One course from '.length));
     }
-    else if (li.startsWith('One from '))
+    else if (text.startsWith('One from '))
     {
       courses.push([]);
-      parseCourseExpression(courses[0], li.substr('One from '.length));
+      parseCourseExpression(courses[0], text.substr('One from '.length));
     }
-    else if (li.indexOf('approved') > -1)
-      courses.push(li);
-    else if (!li.match(/\w{0,4} ([0-9]){1,3}A?L?/g))
-      courses.push(li);
+    else if (text.indexOf('approved') > -1 || text.indexOf('listed') > -1
+            || !text.match(/^\w{0,4} ([0-9]){1,3}A?L?/g))
+    {
+      text = li.outerHTML;
+      text = text.replace(/[\n\r]+/g, ' ');
+      courses.push(text);
+    }
     else
-      parseCourseExpression(courses, li);
+      parseCourseExpression(courses, text);
   }
 
   return courses;
@@ -277,6 +290,9 @@ let formatDegreeTitle = ( title ) => {
   
   if (title.endsWith(' Program'))
     title = title.substr(0, title.length - ' Program'.length);
+  
+  if (title.endsWith(' '))
+    title = title.slice(0, -1);
   
   return title;
 };
