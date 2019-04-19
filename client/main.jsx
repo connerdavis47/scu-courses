@@ -15,5 +15,5 @@ Meteor.startup(() => {
   render(<App />, document.getElementById('root'));
   
   // accessibility: set <html lang="">
-  document.documentElement.lang = 'en';
+  document.documentElement.lang = 'en-US';
 });

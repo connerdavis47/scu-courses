@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor'
 import rp from 'request-promise'
 
 import Degrees from 'imports/api/degrees/degrees'
-import DegreeScraper from 'imports/startup/server/DegreeScraper'
+import { scrapeAll, } from 'imports/startup/server/scrape'
 
 const scuApiRoot = 'https://www.scu.edu/apps/ws/courseavail';
 
@@ -35,7 +35,7 @@ if (Meteor.isServer) {
   Meteor.startup(() => {
     
     Degrees.remove({});
-    new DegreeScraper();
+    scrapeAll();
   
   });
 }
