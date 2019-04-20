@@ -1,12 +1,12 @@
 import { JSDOM } from 'jsdom'
 
 const RemotePages = [
-  'Bioengineering',
-  'CivilEngineering',
+  //'Bioengineering',
+  //'CivilEngineering',
   'ComputerEngineering',
-  'ElectricalEngineering',
-  'GeneralEngineering',
-  'MechanicalEngineering',
+  //'ElectricalEngineering',
+  //'GeneralEngineering',
+  //'MechanicalEngineering',
 ];
 
 let prefix = '';
@@ -59,31 +59,43 @@ let parseDOM = ( dom ) => {
       
       // try to parse several degree programs on one page
       if (elemContains(elem, "Requirements for the Majors"))
-        parseDegrees(categories);
+        degrees = parseDegrees(Object.values(categories));
       // try to parse a page with only one degree program
       else if (elemContains(elem, "Requirements for the Major"))
         degrees[0].categories = parseDegree(Object.values(categories));
     }
   });
   
-  console.log(JSON.stringify(degrees));
+  console.log(JSON.stringify(degrees, null, 2));
 };
 
 let parseDegrees = ( elems ) => {
-  let mark;
-  Object.values(elems).some((elem, i) => {
-    if (sectionHeader(elem) && elemContains(elem, "Bachelor of "))
-    {
-      if (mark)
-      {
-      
+  let degrees = [ ];
+  
+  let open = -1;
+  elems.some((elem, i) => {
+    if (i === elems.length - 1) {
+      degrees[degrees.length - 1].categories =
+        parseDegree(elems.slice(open));
+    }
+    
+    if (sectionHeader(elem) && elemContains(elem, 'Bachelor of ')) {
+      if (open > -1) {
+        degrees[degrees.length - 1].categories =
+          parseDegree(elems.slice(1, i - open));
+        open = i + 1;
+      } else {
+        open = i + 1;
       }
-      else
-      {
-        mark = i;
-      }
+  
+      degrees.push({
+        title: elem.textContent.substr(elem.textContent.indexOf('in') + 3),
+        categories: [],
+      });
     }
   });
+  
+  return degrees;
 };
 
 let parseDegree = ( elems ) => {
@@ -186,30 +198,21 @@ let parseCourseListItem = ( li ) => {
   if (text.endsWith(' '))
     text = text.slice(0, -1);
   
-  if (course(text))
-  {
+  if (course(text)) {
     courses.push(text);
     return courses;
-  }
-  else
-  {
-    if (text.startsWith('One course from '))
-    {
+  } else {
+    if (text.startsWith('One course from ')) {
       courses.push([]);
       parseCourseExpression(courses[0], text.substr('One course from '.length));
-    }
-    else if (text.startsWith('One from '))
-    {
+    } else if (text.startsWith('One from ')) {
       courses.push([]);
       parseCourseExpression(courses[0], text.substr('One from '.length));
-    }
-    else if (text.indexOf('approved') > -1 || text.indexOf('listed') > -1
-            || !text.match(/^\w{0,4} ([0-9]){1,3}A?L?/g))
-    {
-      text = li.outerHTML;
-      text = text.replace(/[\n\r]+/g, ' ');
+    } else if (text.indexOf('approved') > -1
+            || text.indexOf('listed') > -1
+            || !/^\w{0,4} ([0-9]){1,3}A?L?/g.test(text)
+            || !/\d/.test(text))
       courses.push(text);
-    }
     else
       parseCourseExpression(courses, text);
   }
@@ -223,8 +226,7 @@ let parseCourseExpression = ( output, input ) => {
   if ((match = andExpression(input)) !== input)
     for (let split of match)
       matchExpression(output, split);
-  else if ((match = orExpression(input)) !== input)
-  {
+  else if ((match = orExpression(input)) !== input) {
     let orBlock = [ ];
     
     for (let split of match)
@@ -240,13 +242,10 @@ let matchExpression = ( output, input ) => {
   else if (input[0] === ' ')
     input = input.substr(1);
   
-  if (course(input))
-  {
+  if (course(input)) {
     output.push(input);
     prefix = input.substr(0, 4);
-  }
-  else if (input.match(/^\d{1,3}A?L?$/))
-  {
+  } else if (input.match(/^\d{1,3}A?L?$/)) {
     if (input.indexOf('L') > -1)
       return;
     
