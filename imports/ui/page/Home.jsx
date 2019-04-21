@@ -1,7 +1,6 @@
 import { withTracker } from 'meteor/react-meteor-data'
 import React, { Component, } from 'react'
 import { Badge, Button, Col, Form, Label, Input, Row, } from 'reactstrap'
-import { hot } from 'react-hot-loader'
 
 import Degrees from 'imports/api/degrees/Degrees'
 
@@ -322,10 +321,11 @@ class Home extends Component {
   
 }
 
-export default withTracker(() => {
-  Meteor.subscribe('degrees.public');
+export default withTracker(props => {
+  const handle = Meteor.subscribe('degrees.public');
   
   return {
+    degreesLoading: !handle.ready(),
     degrees: Degrees.find({}).fetch(),
   };
 })(Home);

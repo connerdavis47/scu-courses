@@ -1,9 +1,5 @@
-import { hot } from 'react-hot-loader'
 import React from 'react'
-import {
-  BrowserRouter as Router,
-  Route,
-} from 'react-router-dom'
+import { BrowserRouter as Router, Route, } from 'react-router-dom'
 
 import Header from 'imports/ui/component/Header'
 import Home from 'imports/ui/page/Home'
@@ -35,4 +31,5 @@ const App = () => (
     </div>
   </Router>
 );
-export default hot(module)(App)
+
+export default App;

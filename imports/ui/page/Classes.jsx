@@ -1,8 +1,7 @@
 import React, { Component, } from 'react'
 import { Button, Form, InputGroup, InputGroupAddon, Input, } from 'reactstrap'
-import { hot } from 'react-hot-loader'
 
-import Course from 'imports/ui/component/Course';
+import Course from 'imports/ui/component/Course'
 
 /**
  * A page that lets students search for classes that are currently available and
@@ -88,4 +87,4 @@ class Classes extends Component {
   };
   
 }
-export default hot(module)(Classes)
+export default Classes

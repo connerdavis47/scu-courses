@@ -7,7 +7,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const meteorExternals = require('webpack-meteor-externals');
 
 const clientConfig = {
-  entry: ['babel-polyfill', 'client/main.jsx'],
+  entry: [ 'babel-polyfill', 'client/main.jsx' ],
   mode: 'development',
   stats: 'verbose',
   
