@@ -1,97 +1,9 @@
+import { withTracker } from 'meteor/react-meteor-data'
 import React, { Component, } from 'react'
-import { Badge, Button, Form, Label, Input, } from 'reactstrap'
+import { Badge, Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 import { hot } from 'react-hot-loader'
 
-const Degrees = [
-  'Select your Degree',
-  'Bioengineering',
-  'Civil Engineering',
-  'Computer Engineering',
-  'Electrical Engineering',
-  'General Engineering',
-  'Mechanical Engineering',
-];
-
-const UGRAD_CORE = [
-  'Critical Thinking & Writing 1',
-  'Critical Thinking & Writing 2',
-  'Second Language',
-  'Religion, Theology & Culture 1',
-  'Religion, Theology & Culture 2',
-  'Religion, Theology & Culture 3',
-  'Ethics',
-  'Civic Engagement',
-  'Diversity: U.S. Perspectives',
-  'Arts',
-  'Natural Science',
-  'Social Science',
-  'Science, Technology & Society',
-];
-
-const UGRAD_COEN = [
-  'ENGR 1',
-  'COEN 10',
-  'COEN 11',
-  'COEN 12',
-  'COEN 19',
-  'COEN 20',
-  'COEN 21',
-  'COEN 79',
-  'COEN 122',
-  'COEN 146',
-  'COEN 171',
-  'COEN 174',
-  'COEN 175',
-  'COEN 177',
-  'COEN 179',
-  'COEN 194',
-  'COEN 195',
-  'COEN 196',
-  'Elective (Upper-Div)',
-  'Elective (Upper-Div)',
-  'Elective (Upper-Div)',
-  'ELEN 50',
-  'ELEN 153',
-  'ENGL 181',
-  'MATH 11',
-  'MATH 12',
-  'MATH 13',
-  'MATH 14',
-  'PHYS 31',
-  'PHYS 32',
-  'PHYS 33',
-  'CHEM 11',
-  'AMTH 106 / MATH 22',
-  'AMTH 108',
-  'MATH 53 / CSCI 166 / AMTH 118',
-  'Educational Enrichment',
-];
-
-const FormState = Object.freeze({
-  
-  /**
-   * The user is currently entering their degree program.
-   */
-  DEGREE: 'degree',
-  
-  /**
-   * The user is currently selecting University Core courses they have already
-   * satisfied.
-   */
-  CORE: 'core',
-  
-  /**
-   * The user is currently selecting completed classes within their major.
-   */
-  MAJOR: 'major',
-  
-  /**
-   * The user is possibly choosing extra filters, such as the desired earliest
-   * class time or chunks of time when they cannot take classes.
-   */
-  EXTRA: 'extra',
-  
-});
+import Degrees from 'imports/api/degrees/Degrees'
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -104,59 +16,101 @@ class Home extends Component {
     
     this.state = {
   
-      /**
-       * The current active form state, which controls what should be displayed
-       * within the form. We use this primarily because the whole form is
-       * arguably information overload and rightly should be split into chunks.
-       */
-      formState: FormState.DEGREE,
+      formState: 'degree',
+      
+      degreeForm: {
+        degree: {
+        
+        },
+        core: {
+        
+        },
+        major: {
+        
+        },
+        extra: {
+        
+        },
+      },
   
     };
   }
   
   render( ) {
+    console.log(this.state);
     return (
-      <section id="home-degree-form"
-               className="home-degree-form">
-        <h2 className="mb-4">Tell us a little about yourself.</h2>
-        <Form className="border p-4">
-          { (() => {
-            /*
-              Display only one form group at a time to help user deal with
-              information overload.
-             */
-            switch (this.state.formState) {
-              case 'degree':
-                return this.renderFormDegree();
-                
-              case 'core':
-                return this.renderFormCore();
-                
-              case 'major':
-                return this.renderFormMajor();
-                
-              case 'extra':
-                return this.renderFormExtra();
-            }
-          })() }
-        </Form>
+      <section id="degree-form"
+               className="degree-form">
+        <div className="container-fluid mb-5 bg-primary-less">
+          <div className="container py-5">
+            <h2 className="font-weight-bold text-white">
+              Tell us a little about yourself.
+            </h2>
+          </div>
+        </div>
+        <div className="container mb-5">
+          <Row>
+            <Col sm="4">
+              <h5 className="mb-0 pb-3 border-bottom border-bottom-thicker border-primary">
+                My progress
+              </h5>
+              <ol className="degree-form-progress-list list-unstyled">
+                { this.renderFormNavItem('degree', 'Degree program') }
+                { this.renderFormNavItem('core', 'Core requirements') }
+                { this.renderFormNavItem('major', 'Major requirements') }
+                { this.renderFormNavItem('extra', 'Finishing touches') }
+              </ol>
+            </Col>
+            <Col sm="7"
+                 className="ml-4">
+              <Form>
+                { (() => {
+                  switch (this.state.formState) {
+                    case 'degree':
+                      return this.renderFormDegree();
+            
+                    case 'core':
+                      return this.renderFormCore();
+            
+                    case 'major':
+                      return this.renderFormMajor();
+            
+                    case 'extra':
+                      return this.renderFormExtra();
+                  }
+                })() }
+              </Form>
+            </Col>
+          </Row>
+        </div>
       </section>
     )
   }
   
-  renderFormNav = ( ) => {
+  renderFormNavItem = ( formState, title ) => {
+    const active = this.state.formState === formState
+      ? 'degree-form-progress-active' : '';
+    const completed =
+      Object.entries(this.state.degreeForm[formState]).length === 0
+        ? 'text-light' : 'text-success';
+    
     return (
-      <div className="d-flex justify-content-between border-top mt-4 pt-4">
-        <Button outline
-                color="danger"
-                onClick={ () => { this.updateFormState(false) } }>
-          <i className="fas fa-arrow-left pr-2"> </i> Go back
-        </Button>
+      <li className={ `${active} border-bottom border-secondary p-4` }
+          onClick={ () => this.forceFormState(formState) }>
+        { title }
+        <i className={ `fas fa-check-circle text-success ${completed}` }> </i>
+      </li>
+    )
+  };
+  
+  renderFormNext = ( ) => {
+    return (
+      <div className="d-flex pt-4">
         <Button outline
                 color="success"
-                onClick={ () => { this.updateFormState(true) } }>
-          { this.state.formState === FormState.EXTRA ?
-            'Get schedules' : 'Next' }
+                onClick={ this.updateFormState }>
+          { this.state.formState === 'extra' ?
+            'Get schedules' : 'Save and continue' }
           <i className="fas fa-arrow-right pl-2"> </i>
         </Button>
       </div>
@@ -166,19 +120,25 @@ class Home extends Component {
   renderFormDegree = ( ) => {
     return (
       <div>
-        <Label for="inputDegree">Degree Program</Label>
+        <h4 className="font-weight-bolder mb-4">
+          Degree program
+        </h4>
+        <Label for="inputDegree">Degree program</Label>
         <Input type="select"
                name="degree"
                id="inputDegree"
-               onChange={ () => { this.updateFormState(true) } }>
-          { Object.values(Degrees).map((degree, i) =>
+               onChange={ this.updateFormState }>
+          { Object.values(this.props.degrees).map((degree, i) =>
             <option
               key={ i }
-              name={ degree }>
-              { degree }
+              name={ degree.title }
+              selected={ this.state.degreeForm.degree.title === degree.title
+                ? 'selected' : '' }>
+              { degree.title }
             </option>
-          )}
+          ) }
         </Input>
+        { this.renderFormNext() }
       </div>
     );
   };
@@ -188,37 +148,39 @@ class Home extends Component {
       <div>
         <Label>Select University Core you've completed.</Label>
         <div className="d-flex flex-wrap">
-          { Object.values(UGRAD_CORE).map((course, i) =>
-            <Badge
-              key={ `C${i}` }
-              color="light"
-              className="m-1 p-2 border"
-              onClick={ this.toggleOneCourse }>
-              { ` ${course}` }
-            </Badge>
-          )}
         </div>
-        { this.renderFormNav() }
+        { this.renderFormNext() }
       </div>
     );
   };
   
   renderFormMajor = ( ) => {
+    let categories = this.props.degrees[0].categories;
+    for (let degree of this.props.degrees)
+      if (degree.title === this.state.degreeForm.degree.title)
+        categories = degree.categories;
+    
     return (
       <div>
-        <Label>And pick the degree courses you've already finished.</Label>
-        <div className="home-form-courses d-flex flex-wrap">
-          { Object.values(UGRAD_COEN).map((course, i) =>
-            <Badge
-              key={ `M${i}` }
-              color="light"
-              className="m-1 p-2 border"
-              onClick={ this.toggleOneCourse }>
-              { ` ${course}` }
-            </Badge>
-          )}
+        <h4 className="font-weight-bolder mb-4">
+          Major requirements
+        </h4>
+        <p>Select the classes you've already taken.</p>
+        <div>
+          { categories.map((each, i) =>
+            <div className="mb-3">
+              <p
+                className="font-weight-bold mb-2"
+                key={ i }>
+                { each.name }
+              </p>
+              <div className="degree-form d-flex flex-wrap">
+                { this.renderRequirements(each) }
+              </div>
+            </div>
+          ) }
         </div>
-        { this.renderFormNav() }
+        { this.renderFormNext() }
       </div>
     );
   };
@@ -228,46 +190,142 @@ class Home extends Component {
       <div>
         <Label>Mess with some of these other cool filters.</Label>
         
-        { this.renderFormNav() }
+        { this.renderFormNext() }
       </div>
     );
   };
   
-  /**
-   * @public
-   * Toggles the active state of a course badge in this form. Badges colored
-   * brand primary are considered active, light gray inactive.
-   *
-   * @param e The badge to toggle to gray or brand primary.
-   */
+  renderRequirements = ( category ) => {
+    return Object.values(category.reqs).map((item, i) => {
+      if (Array.isArray(item)) {
+        if (item.toString().indexOf(',') > -1)
+          item = item.toString().replace(/[,]+/g, ' or ');
+        
+        return (
+          <React.Fragment>
+            <div className="small font-weight-bold">
+              { item.option }
+            </div>
+            <Badge
+              key={`${i}-${item}`}
+              color="light"
+              className="m-1 p-2 border-bottom"
+              onClick={ this.toggleOneCourse }>
+              { item }
+            </Badge>
+          </React.Fragment>
+        )
+      } else if (Object.prototype.toString.call(item) === '[object Object]') {
+        const isOption = item.hasOwnProperty('option');
+        
+        return (
+          <div className="mx-3">
+            { isOption &&
+              <p
+                className={ `mb-0 font-weight-bold text-dark w-100
+                  ${i === 0 ? '' : 'mt-3'}
+                ` }>
+                { item.option }
+              </p>
+            }
+            { Object.values(item.reqs).map((req, i) => {
+              if (req.toString().startsWith('<p>')) {
+                return (
+                  <div
+                    dangerouslySetInnerHTML={{ __html: req }}>
+                    
+                  </div>
+                );
+              } else {
+                if (req.toString().indexOf(',') > -1)
+                  req = req.toString().replace(/[,]+/g, ' or ');
+  
+                return (
+                  <Badge
+                    key={`${i}-${item.toString()}`}
+                    color="light"
+                    className="m-1 p-2 border-bottom"
+                    onClick={this.toggleOneCourse}>
+                    {req}
+                  </Badge>
+                );
+              }
+            }) }
+          </div>
+        )
+      } else {
+        if (item.indexOf('<li>') > -1) {
+          return (
+            <div
+              dangerouslySetInnerHTML={{ __html: item }}>
+    
+            </div>
+          );
+        }
+        
+        if (item.indexOf('<p>') > -1)
+          item = item.replace(/<\/?p>/g, '');
+        
+        return (
+          <Badge
+            key={`${i}-${item}`}
+            color="light"
+            className="m-1 p-2 border-bottom"
+            onClick={ this.toggleOneCourse }>
+            { item }
+          </Badge>
+        )
+      }
+    })
+  };
+  
   toggleOneCourse = ( e ) => {
     const options = [ 'badge-primary', 'badge-light' ];
     options.forEach(color => e.target.classList.toggle(color));
   };
   
-  updateFormState = ( next ) => {
-    let to;
+  forceFormState = ( to ) => {
+    this.setState({
+      formState: to,
+    })
+  };
+  
+  updateFormState = ( e ) => {
+    let state = {
+      formState: this.state.formState,
+      degreeForm: this.state.degreeForm,
+    };
     
     switch (this.state.formState) {
       case 'degree':
-        to = next ? FormState.CORE : FormState.DEGREE;
+        state.formState = 'core';
+        state.degreeForm.degree = {
+          title: e.target.value,
+        };
         break;
       
       case 'core':
-        to = next ? FormState.MAJOR : FormState.DEGREE;
+        state.formState = 'major';
         break;
         
       case 'major':
-        to = next ? FormState.EXTRA : FormState.CORE;
+        state.formState = 'extra';
         break;
         
       case 'extra':
-        to = next ? FormState.EXTRA : FormState.MAJOR;
+        console.log('done');
         break;
     }
     
-    this.setState({ formState: to, });
+    this.setState(state);
   };
   
 }
-export default hot(module)(Home)
+
+export default withTracker(() => {
+  Meteor.subscribe('degrees.public');
+  
+  return {
+    degrees: Degrees.find({}).fetch(),
+  };
+})(Home);
