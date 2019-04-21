@@ -13,7 +13,6 @@ Degrees.schema = new SimpleSchema({
   title: {
     type: String,
     required: true,
-    regEx: /[A-Za-z\s]+/,
     label: 'Degree Program',
   },
   
@@ -21,23 +20,29 @@ Degrees.schema = new SimpleSchema({
    * The four-letter prefix assigned to each academic department's courses.
    * "COEN"
    */
-  prefix: {
+  /*prefix: {
     type: String,
     required: true,
     regEx: /[A-Z]{4}/,
     label: 'Prefix',
-  },
+  },*/
   
   /**
    * A list of Course objects that identify individual course requirements.
    * "COEN 20 - Intro to Embedded Systems"
    */
-  reqs: {
+  categories: {
     type: Object,
     required: true,
     label: 'Requirements',
   },
   
 });
+
+if (Meteor.isServer) {
+  Meteor.publish('degrees.public', () => {
+    return Degrees.find({ });
+  });
+}
 
 export default Degrees;
