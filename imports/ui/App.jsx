@@ -27,11 +27,11 @@ const App = () => (
   <Router>
     <div>
       <Header links={ Object.keys(Routes) } />
-      <div className="container py-5">
+      <section id="main-content">
         { Object.entries(Routes).map(([path, component], i) =>
           <Route key={ i } exact path={ `/${path}` } component={ component } />
         ) }
-      </div>
+      </section>
     </div>
   </Router>
 );

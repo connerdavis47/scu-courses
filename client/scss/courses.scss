@@ -10,23 +10,65 @@ h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
 }
 
+.border-bottom-thicker {
+  border-bottom-width: 2px !important;
+}
+
+.border-secondary {
+  border-color: rgba(108, 117, 125, .2) !important;
+}
+
 /* Header.jsx */
 
 .header-scu {
   min-height: auto;
 }
 
+.nav-top-custom {
+  border: 0 !important;
+}
+
+.bg-primary-less {
+  background-color: darken($brand-primary, 2%);
+}
+
 /* Home.jsx */
 
-.home-degree-form {
+.degree-form {
 
   .badge {
     cursor: pointer;
     flex: 1 0 22%;
+    overflow-wrap: break-word;
+    white-space: inherit;
 
     &:hover {
       box-shadow: 0 0 1px $brand-primary;
     }
+  }
+
+  .small {
+    width: 100%;
+  }
+
+}
+
+.degree-form-progress-list {
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .degree-form-progress-active,
+  li:hover {
+    background-color: rgba(211, 189, 205, 0.2);
+    cursor: pointer;
+  }
+
+  .degree-form-progress-active {
+    font-weight: bold;
   }
 
 }

@@ -19,8 +19,8 @@ class Header extends Component {
   render( ) {
     return (
       <header className="header-scu">
-        <nav className="nav-top nav-top-custom fixed-top bg-white">
-          <div className="container d-flex py-2 align-items-center">
+        <nav className="nav-top nav-top-custom fixed-top bg-primary text-white">
+          <div className="container d-flex py-4 align-items-center">
             {/* assign links[0] as homepage, a separate link */}
             <NavLink exact
                      to={ `/${this.props.links[0]}` }
