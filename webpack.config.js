@@ -80,7 +80,6 @@ const clientConfig = {
   // enables hot module replacement, i.e. automatic web browser reloads
   devServer: {
     hot: true,
-    inline: true,
   },
   
   externals: [
@@ -100,6 +99,10 @@ const serverConfig = {
     modules: [ path.resolve(__dirname, '.'), 'node_modules', ],
     extensions: [ '.js', '.jsx', ],
   },
+  
+  plugins: [
+    new webpack.HotModuleReplacementPlugin()
+  ],
   
   devServer: {
     hot: true,

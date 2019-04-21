@@ -126,13 +126,12 @@ class Home extends Component {
         <Input type="select"
                name="degree"
                id="inputDegree"
-               onChange={ this.updateFormState }>
+               onChange={ this.updateFormState }
+               defaultValue={ this.state.degreeForm.degree.title }>
           { Object.values(this.props.degrees).map((degree, i) =>
             <option
               key={ i }
-              name={ degree.title }
-              selected={ this.state.degreeForm.degree.title === degree.title
-                ? 'selected' : '' }>
+              name={ degree.title }>
               { degree.title }
             </option>
           ) }
@@ -201,29 +200,29 @@ class Home extends Component {
           item = item.toString().replace(/[,]+/g, ' or ');
         
         return (
-          <React.Fragment>
+          <div key={ i }>
             <div className="small font-weight-bold">
               { item.option }
             </div>
             <Badge
-              key={`${i}-${item}`}
               color="light"
               className="m-1 p-2 border-bottom"
               onClick={ this.toggleOneCourse }>
               { item }
             </Badge>
-          </React.Fragment>
+          </div>
         )
       } else if (Object.prototype.toString.call(item) === '[object Object]') {
         const isOption = item.hasOwnProperty('option');
         
         return (
-          <div className="mx-3">
+          <div
+            key={ i }
+            className="mx-3">
             { isOption &&
-              <p
-                className={ `mb-0 font-weight-bold text-dark w-100
-                  ${i === 0 ? '' : 'mt-3'}
-                ` }>
+              <p className={
+                `mb-0 font-weight-bold text-dark w-100 ${i === 0 ? '' : 'mt-3'}`
+                }>
                 { item.option }
               </p>
             }
@@ -231,8 +230,8 @@ class Home extends Component {
               if (req.toString().startsWith('<p>')) {
                 return (
                   <div
+                    key={ i }
                     dangerouslySetInnerHTML={{ __html: req }}>
-                    
                   </div>
                 );
               } else {
@@ -241,7 +240,7 @@ class Home extends Component {
   
                 return (
                   <Badge
-                    key={`${i}-${item.toString()}`}
+                    key={ i }
                     color="light"
                     className="m-1 p-2 border-bottom"
                     onClick={this.toggleOneCourse}>
@@ -256,8 +255,8 @@ class Home extends Component {
         if (item.indexOf('<li>') > -1) {
           return (
             <div
+              key={ i }
               dangerouslySetInnerHTML={{ __html: item }}>
-    
             </div>
           );
         }
@@ -267,7 +266,7 @@ class Home extends Component {
         
         return (
           <Badge
-            key={`${i}-${item}`}
+            key={ i }
             color="light"
             className="m-1 p-2 border-bottom"
             onClick={ this.toggleOneCourse }>
