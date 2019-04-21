@@ -1,19 +1,33 @@
 import { JSDOM } from 'jsdom'
 
+import Degrees from 'imports/api/degrees/degrees'
+
 const RemotePages = [
-  //'Bioengineering',
-  //'CivilEngineering',
+  'Bioengineering',
+  'CivilEngineering',
   'ComputerEngineering',
-  //'ElectricalEngineering',
-  //'GeneralEngineering',
-  //'MechanicalEngineering',
+  'ElectricalEngineering',
+  'GeneralEngineering',
+  'MechanicalEngineering',
 ];
 
 let prefix = '';
 
-let scrapeAll = () => {
-  for (let page of RemotePages)
-    loadDOM(page).then(dom => parseDOM(dom));
+let scrapeAll = ( ) => {
+  try {
+    for (let page of RemotePages) {
+      loadDOM(page).then(dom => {
+        let degrees = parseDOM(dom);
+        Degrees.insert(degrees[0]);
+        if (degrees.length > 1)
+          Degrees.insert(degrees[1]);
+      });
+    }
+  } catch (err) {
+    console.log('err ' + err);
+  } finally {
+    console.log('done');
+  }
 };
 
 let loadDOM = ( page ) => {
@@ -30,12 +44,11 @@ let loadDOM = ( page ) => {
 };
 
 let parseDOM = ( dom ) => {
-  let degrees = [
-    {
-      title: formatDegreeTitle(dom.querySelector('h1').textContent),
-      categories: [],
-    },
-  ];
+  let degrees = [ ];
+  degrees.push({
+    title: formatDegreeTitle(dom.querySelector('h1').textContent),
+    categories: [],
+  });
   
   const nodes = Object.values(dom.children);
   nodes.some((elem, i) => {
@@ -66,12 +79,11 @@ let parseDOM = ( dom ) => {
     }
   });
   
-  console.log(JSON.stringify(degrees, null, 2));
+  return degrees;
 };
 
 let parseDegrees = ( elems ) => {
   let degrees = [ ];
-  
   let open = -1;
   elems.some((elem, i) => {
     if (i === elems.length - 1) {
@@ -132,8 +144,11 @@ let parseSection = ( elems ) => {
     {
       if (elemTag(elems[0], 'p') && elemTag(elems[1], 'ul'))
       {
+        let title = elems[0].textContent.replace(':', '');
+        title = title.replace('\n', ' ');
+        
         reqs.push({
-          option: elems[0].textContent,
+          option: title,
           reqs: parseCourseList(elems[1]),
         });
         elems.shift();
@@ -161,6 +176,7 @@ let parseSection = ( elems ) => {
       else if (elemTag(elems[0], 'p'))
       {
         let text = elems[0].outerHTML;
+        text = text.replace('\n', '');
         
         elems.shift();
         while (elems.length > 0) {
@@ -169,7 +185,7 @@ let parseSection = ( elems ) => {
         }
         
         reqs.push({
-          text: text,
+          reqs: [text],
         });
       }
       else break;
@@ -183,7 +199,7 @@ let parseCourseList = ( ul ) => {
   let reqs = [];
   
   for (let li of ul.children)
-    reqs = reqs.concat(replaceSingleItemArrays(parseCourseListItem(li)));
+    reqs = reqs.concat(parseCourseListItem(li));
   
   return reqs;
 };
@@ -191,6 +207,7 @@ let parseCourseList = ( ul ) => {
 let parseCourseListItem = ( li ) => {
   let courses = [ ];
   
+  let html = li.innerHTML.replace(/[\n\r]+/g, ' ');
   let text = li.textContent;
   text = text.replace(/[\n\r]+/g, ' ');
   text = text.replace(/[()]+/g, '');
@@ -212,7 +229,7 @@ let parseCourseListItem = ( li ) => {
             || text.indexOf('listed') > -1
             || !/^\w{0,4} ([0-9]){1,3}A?L?/g.test(text)
             || !/\d/.test(text))
-      courses.push(text);
+      courses.push(html);
     else
       parseCourseExpression(courses, text);
   }
