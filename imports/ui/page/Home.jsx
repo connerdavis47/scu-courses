@@ -5,6 +5,7 @@ import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 import Degrees from 'imports/api/degrees/Degrees'
 import Subheader from 'imports/ui/component/Subheader'
 import CourseBadge from 'imports/ui/component/CourseBadge';
+import ConstructionNotice from 'imports/ui/page/ConstructionNotice'
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -91,15 +92,13 @@ class Home extends Component {
   
   renderBtnContinue = ( ) => {
     return (
-      <div className="d-flex pt-4">
-        <Button outline
-                color="success"
-                onClick={ this.nextFormState }>
-          { 'finishing'.startsWith(this.state.formState)
-            ? 'Get schedules' : 'Save and continue' }
-          <i className="fas fa-arrow-right pl-2"> </i>
-        </Button>
-      </div>
+      <Button outline
+              color="success"
+              onClick={ this.nextFormState }>
+        { 'finishing'.startsWith(this.state.formState)
+          ? 'Get schedules' : 'Save and continue' }
+        <i className="fas fa-arrow-right pl-2"> </i>
+      </Button>
     )
   };
   
@@ -109,19 +108,21 @@ class Home extends Component {
         <h4 className="font-weight-bolder mb-4">
           Degree program
         </h4>
-        <Label for="title">Degree program</Label>
-        <Input type="select"
-               name="title"
-               id="inputTitle"
-               onChange={ this.handleInput }
-               defaultValue={ this.state.form.degree.title }>
-          { this.sortedDegrees().map((degree, i) =>
+        <p>
+          <Label for="title">Degree program</Label>
+          <Input type="select"
+                 name="title"
+                 id="inputTitle"
+                 onChange={ this.handleInput }
+                 defaultValue={ this.state.form.degree.title }>
+            { this.sortedDegrees().map((degree, i) =>
               <option key={ i }
                       name={ degree.title }>
                 { degree.title }
               </option>
-          ) }
-        </Input>
+            ) }
+          </Input>
+        </p>
         { this.renderBtnContinue() }
       </div>
     );
@@ -133,6 +134,7 @@ class Home extends Component {
         <h4 className="font-weight-bolder mb-4">
           Core requirements
         </h4>
+        <ConstructionNotice/>
         <p>Select the University Core classes you've already taken.</p>
         <div>
           { this.props.degrees.filter(d => d.title === 'Undergraduate Degrees')[0].categories.map((each, i) =>
@@ -160,6 +162,7 @@ class Home extends Component {
         <h4 className="font-weight-bolder mb-4">
           Major requirements
         </h4>
+        <ConstructionNotice/>
         <p>Select the classes you've already taken.</p>
         <div>
           { console.log(this.state.form.degree.title) }
