@@ -36,10 +36,20 @@ h1,h2,h3,h4,h5,h6 {
 
 .degree-form {
 
+  ul li {
+    margin-bottom: .5rem;
+
+    p {
+      margin-bottom: 0;
+    }
+  }
+
   .badge {
+    align-items: center;
     cursor: pointer;
     display: flex;
-    flex: 1 30%;
+    flex: 1 22%;
+    justify-content: center;
     overflow-wrap: break-word;
     white-space: inherit;
 
@@ -52,6 +62,17 @@ h1,h2,h3,h4,h5,h6 {
     width: 100%;
   }
 
+}
+
+.degree-form-category {
+  align-items: center;
+  display: flex;
+
+  span {
+    border-top: 1px solid rgba(0, 0, 0, .2);
+    content: "";
+    flex: 1 1 auto;
+  }
 }
 
 .degree-form-progress-list {

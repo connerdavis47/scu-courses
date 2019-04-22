@@ -4,7 +4,7 @@ import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 
 import Degrees from 'imports/api/degrees/Degrees'
 import Subheader from 'imports/ui/component/Subheader'
-import BadgeCourse from 'imports/ui/component/BadgeCourse';
+import CourseBadge from 'imports/ui/component/CourseBadge';
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -22,7 +22,7 @@ class Home extends Component {
         degree: { },
         core: { },
         major: { },
-        extra: { },
+        finishing: { },
       },
   
     };
@@ -44,7 +44,7 @@ class Home extends Component {
                 { this.renderBtnProgress('degree', 'Degree program') }
                 { this.renderBtnProgress('core', 'Core requirements') }
                 { this.renderBtnProgress('major', 'Major requirements') }
-                { this.renderBtnProgress('extra', 'Finishing touches') }
+                { this.renderBtnProgress('finishing', 'Finishing touches') }
               </ol>
             </Col>
             <Col sm="7"
@@ -61,8 +61,8 @@ class Home extends Component {
                     case 'major':
                       return this.renderFormMajor();
             
-                    case 'extra':
-                      return this.renderFormExtra();
+                    case 'finishing':
+                      return this.renderFormFinishing();
                   }
                 })() }
               </Form>
@@ -95,7 +95,7 @@ class Home extends Component {
         <Button outline
                 color="success"
                 onClick={ this.nextFormState }>
-          { 'extra'.startsWith(this.state.formState)
+          { 'finishing'.startsWith(this.state.formState)
             ? 'Get schedules' : 'Save and continue' }
           <i className="fas fa-arrow-right pl-2"> </i>
         </Button>
@@ -115,11 +115,11 @@ class Home extends Component {
                id="inputTitle"
                onChange={ this.handleInput }
                defaultValue={ this.state.form.degree.title }>
-          { Object.values(this.props.degrees.filter(c => c.title !== 'Undergraduate Degrees')).map((degree, i) =>
-            <option key={ i }
-                    name={ degree.title }>
-              { degree.title }
-            </option>
+          { this.sortedDegrees().map((degree, i) =>
+              <option key={ i }
+                      name={ degree.title }>
+                { degree.title }
+              </option>
           ) }
         </Input>
         { this.renderBtnContinue() }
@@ -137,9 +137,11 @@ class Home extends Component {
         <div>
           { this.props.degrees.filter(d => d.title === 'Undergraduate Degrees')[0].categories.map((each, i) =>
             <div key={ i }
-                 className="mb-3">
-              <p className="font-weight-bold mb-2">
+                 className="mb-4">
+              <p key={ i }
+                 className="degree-form-category font-weight-bold mb-2">
                 { each.name }
+                <span className="ml-3"> </span>
               </p>
               <div className="degree-form d-flex flex-wrap">
                 { this.renderRequirements(each) }
@@ -160,11 +162,13 @@ class Home extends Component {
         </h4>
         <p>Select the classes you've already taken.</p>
         <div>
+          { console.log(this.state.form.degree.title) }
           { this.props.degrees.filter(d => d.title === this.state.form.degree.title)[0].categories.map((each, i) =>
-            <div className="mb-3">
+            <div className="mb-4">
               <p key={ i }
-                 className="font-weight-bold mb-2">
+                 className="degree-form-category font-weight-bold mb-2">
                 { each.name }
+                <span className="ml-3"> </span>
               </p>
               <div className="degree-form d-flex flex-wrap">
                 { this.renderRequirements(each) }
@@ -177,7 +181,7 @@ class Home extends Component {
     )
   };
   
-  renderFormExtra = ( ) => {
+  renderFormFinishing = ( ) => {
     return (
       <div>
         <h4 className="font-weight-bolder mb-4">
@@ -195,61 +199,55 @@ class Home extends Component {
   renderRequirements = ( category ) => {
     return Object.values(category.reqs).map((item, i) => {
       if (Array.isArray(item)) {
-        if (item.toString().indexOf(',') > -1)
-          item = item.toString().replace(/[,]+/g, ' or ');
-        
-        return (
-          <div key={ `${i}-container` }>
-            <div className="small font-weight-bold">
-              { item.option }
-            </div>
-            <BadgeCourse name={ item } />
-          </div>
-        )
+        item = item.toString().replace(/[,]+/g, ' -or- ');
       } else if (Object.prototype.toString.call(item) === '[object Object]') {
         const isOption = item.hasOwnProperty('option');
-        
+  
         return (
-          <div
-            key={ i }
-            className="mx-3">
+          <div key={ i }>
             { isOption &&
-              <p className={ `mb-0 font-weight-bold text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
+              <p className={ `mb-1 text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
                 { item.option }
               </p>
             }
-            { Object.values(item.reqs).map((req, i) => {
-              if (req.toString().startsWith('<p>'))
-                return (
-                  <div key={ i }
-                       dangerouslySetInnerHTML={{ __html: req }}>
-                  </div>
-                );
-              
-              if (req.toString().indexOf(',') > -1)
-                  req = req.toString().replace(/[,]+/g, ' or ');
+            <div>
+              { Object.values(item.reqs).map((req, i) => {
+                if (req.indexOf('<') > -1 && req.indexOf('>') > -1) {
+                  req = req.replace(/<\/?p>/g, '');
   
-              return (
-                <BadgeCourse key={ `${req}-badge` }
-                             name={ req } />
-              )
-            }) }
+                  return (
+                    <div key={ i }
+                         dangerouslySetInnerHTML={{ __html: req }}>
+                    </div>
+                  )
+                }
+      
+                if (req.toString().indexOf(',') > -1)
+                  req = req.toString().replace(/[,]+/g, ' or ');
+      
+                return (
+                  <CourseBadge key={ `${i}badge` }
+                               name={ req } />
+                )
+              }) }
+            </div>
           </div>
         )
       }
       
-      if (item.indexOf('<li>') > -1)
+      if (item.indexOf('<p>') > -1)
+        item = item.replace(/<\/?p>/g, '');
+      
+      if (item.indexOf('<li>') > -1) {
         return (
           <div key={ i }
                dangerouslySetInnerHTML={{ __html: item }}>
           </div>
-        );
-      
-      if (item.indexOf('<p>') > -1)
-        item = item.replace(/<\/?p>/g, '');
+        )
+      }
       
       return (
-        <BadgeCourse name={ item } />
+        <CourseBadge name={ item } />
       )
     })
   };
@@ -295,8 +293,8 @@ class Home extends Component {
     switch (state.formState) {
       case 'degree':
         state.formState = 'core';
-        if (typeof state.form.degree.title === 'undefined')
-          state.form.degree.title = this.props.degrees[0].title;
+        if (typeof this.state.form.degree.title === 'undefined')
+          state.form.degree.title = this.sortedDegrees()[0].title;
         break;
       
       case 'core':
@@ -304,10 +302,10 @@ class Home extends Component {
         break;
         
       case 'major':
-        state.formState = 'extra';
+        state.formState = 'finishing';
         break;
         
-      case 'extra':
+      case 'finishing':
         console.log('done');
         break;
     }
@@ -319,9 +317,9 @@ class Home extends Component {
     this.setState({ formState: to });
   };
   
-  toggleOneCourse = ( e ) => {
-    const options = [ 'badge-primary', 'badge-light' ];
-    options.forEach(color => e.target.classList.toggle(color));
+  sortedDegrees = ( ) => {
+    return Object.values(this.props.degrees.filter(c => c.title !== 'Undergraduate Degrees'))
+      .sort((a, b) => (a.title > b.title) ? 1 : ((b.title > a.title) ? -1 : 0));
   };
   
 }

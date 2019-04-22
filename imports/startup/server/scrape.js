@@ -82,20 +82,17 @@ let parseDOM = ( dom ) => {
 
 let parseDegrees = ( elems ) => {
   let degrees = [ ];
-  let open = -1;
+  let end = -1;
   elems.some((elem, i) => {
     if (i === elems.length - 1) {
-      degrees[degrees.length - 1].categories =
-        parseDegree(elems.slice(open));
+      degrees[degrees.length - 1].categories = parseDegree(elems.slice(end + 1));
+      return true;
     }
     
     if (sectionHeader(elem) && elemContains(elem, 'Bachelor of ')) {
-      if (open > -1) {
-        degrees[degrees.length - 1].categories =
-          parseDegree(elems.slice(1, i - open));
-        open = i + 1;
-      } else {
-        open = i + 1;
+      if (i > 0) {
+        end = i;
+        degrees[degrees.length - 1].categories = parseDegree(elems.slice(1, i));
       }
   
       degrees.push({
@@ -121,11 +118,11 @@ let parseDegree = ( elems ) => {
         }
       });
       
-      const reqs = parseSection(section);
-      if (reqs.length > 0) {
+      const matches = parseSection(section);
+      if (matches.length > 0) {
         categories.push({
           name: elem.textContent,
-          reqs: parseSection(section),
+          reqs: matches,
         });
       }
     }
@@ -135,22 +132,20 @@ let parseDegree = ( elems ) => {
 };
 
 let parseSection = ( elems ) => {
-  let reqs = [ ];
+  let matches = [ ];
   
   if (elems.length === 1 && elemTag(elems[0], 'ul'))
-    reqs = reqs.concat(parseCourseList(elems[0]));
+    matches = matches.concat(parseCourseList(elems[0]));
   else
   {
     while (elems.length > 1)
     {
       if (elemTag(elems[0], 'p') && elemTag(elems[1], 'ul'))
       {
-        let title = elems[0].textContent.replace(':', '');
-        title = title.replace('\n', ' ');
-        
-        reqs.push({
-          option: title,
-          reqs: parseCourseList(elems[1]),
+        matches.push({
+          option: elems[0].textContent.replace('\n', ' '),
+          reqs: (/\w{0,4} ([0-9]){1,3}A?L?/g.test(elems[1].textContent))
+            ? parseCourseList(elems[1]) : [elems[1].outerHTML.replace('\n', ' ')],
         });
         elems.shift();
         elems.shift();
@@ -159,19 +154,19 @@ let parseSection = ( elems ) => {
       {
         if (elems[1].textContent.endsWith(':'))
         {
-          reqs.push(parseCourseList(elems[0]));
+          matches.push(parseCourseList(elems[0]));
           elems.shift();
         }
         else
         {
-          reqs = reqs.concat(parseCourseList(elems[0]));
+          matches = matches.concat(parseCourseList(elems[0]));
           elems.shift();
           elems.shift();
         }
       }
       else if (elemTag(elems[0], 'ul'))
       {
-        reqs = reqs.concat(parseCourseList(elems[0]));
+        matches = matches.concat(parseCourseList(elems[0]));
         elems.shift();
       }
       else if (elemTag(elems[0], 'p'))
@@ -185,7 +180,7 @@ let parseSection = ( elems ) => {
           elems.shift();
         }
         
-        reqs.push({
+        matches.push({
           reqs: [text],
         });
       }
@@ -193,7 +188,7 @@ let parseSection = ( elems ) => {
     }
   }
   
-  return reqs;
+  return matches;
 };
 
 let parseCourseList = ( ul ) => {
@@ -208,7 +203,7 @@ let parseCourseList = ( ul ) => {
 let parseCourseListItem = ( li ) => {
   let courses = [ ];
   
-  let html = li.innerHTML.replace(/[\n\r]+/g, ' ');
+  let html = li.outerHTML.replace(/[\n\r]+/g, ' ');
   let text = li.textContent;
   text = text.replace(/[\n\r]+/g, ' ');
   text = text.replace(/[()]+/g, '');
@@ -220,19 +215,19 @@ let parseCourseListItem = ( li ) => {
     courses.push(text);
     return courses;
   } else {
-    if (text.startsWith('One course from ')) {
+    if (text.startsWith('One course from ') && /\w{0,4} ([0-9]){1,3}A?L?/g.test(text)) {
       courses.push([]);
       parseCourseExpression(courses[0], text.substr('One course from '.length));
     } else if (text.startsWith('One from ')) {
       courses.push([]);
       parseCourseExpression(courses[0], text.substr('One from '.length));
-    } else if (text.indexOf('approved') > -1
-            || text.indexOf('listed') > -1
-            || !/^\w{0,4} ([0-9]){1,3}A?L?/g.test(text)
-            || !/\d/.test(text))
+    } else if (text.indexOf('listed') > -1
+            || !(/^\w{0,4} [0-9]{1,3}A?L?/).test(text)) {
+      console.log(text);
       courses.push(html);
-    else
+    } else {
       parseCourseExpression(courses, text);
+    }
   }
 
   return courses;
