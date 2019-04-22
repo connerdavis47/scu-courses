@@ -1,8 +1,10 @@
 import { withTracker } from 'meteor/react-meteor-data'
 import React, { Component, } from 'react'
-import { Badge, Button, Col, Form, Label, Input, Row, } from 'reactstrap'
+import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 
 import Degrees from 'imports/api/degrees/Degrees'
+import Subheader from 'imports/ui/component/Subheader'
+import BadgeCourse from 'imports/ui/component/BadgeCourse';
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -16,20 +18,11 @@ class Home extends Component {
     this.state = {
   
       formState: 'degree',
-      
-      degreeForm: {
-        degree: {
-        
-        },
-        core: {
-        
-        },
-        major: {
-        
-        },
-        extra: {
-        
-        },
+      form: {
+        degree: { },
+        core: { },
+        major: { },
+        extra: { },
       },
   
     };
@@ -38,15 +31,9 @@ class Home extends Component {
   render( ) {
     console.log(this.state);
     return (
-      <section id="degree-form"
-               className="degree-form">
-        <div className="container-fluid mb-5 bg-primary-less">
-          <div className="container py-5">
-            <h2 className="font-weight-bold text-white">
-              Tell us a little about yourself.
-            </h2>
-          </div>
-        </div>
+      <section className="degree-form"
+               id="degree-form">
+        <Subheader content="Tell us a little about yourself." />
         <div className="container mb-5">
           <Row>
             <Col sm="4">
@@ -54,10 +41,10 @@ class Home extends Component {
                 My progress
               </h5>
               <ol className="degree-form-progress-list list-unstyled">
-                { this.renderFormNavItem('degree', 'Degree program') }
-                { this.renderFormNavItem('core', 'Core requirements') }
-                { this.renderFormNavItem('major', 'Major requirements') }
-                { this.renderFormNavItem('extra', 'Finishing touches') }
+                { this.renderBtnProgress('degree', 'Degree program') }
+                { this.renderBtnProgress('core', 'Core requirements') }
+                { this.renderBtnProgress('major', 'Major requirements') }
+                { this.renderBtnProgress('extra', 'Finishing touches') }
               </ol>
             </Col>
             <Col sm="7"
@@ -86,30 +73,30 @@ class Home extends Component {
     )
   }
   
-  renderFormNavItem = ( formState, title ) => {
+  renderBtnProgress = ( formState, title ) => {
     const active = this.state.formState === formState
       ? 'degree-form-progress-active' : '';
-    const completed =
-      Object.entries(this.state.degreeForm[formState]).length === 0
-        ? 'text-light' : 'text-success';
+    const completed = (!(typeof this.state.form[formState] === 'undefined') &&
+      Object.values(this.state.form[formState]).length > 0)
+        ? 'text-success' : 'text-light';
     
     return (
       <li className={ `${active} border-bottom border-secondary p-4` }
-          onClick={ () => this.forceFormState(formState) }>
+          onClick={ () => this.setFormState(formState) }>
         { title }
         <i className={ `fas fa-check-circle text-success ${completed}` }> </i>
       </li>
     )
   };
   
-  renderFormNext = ( ) => {
+  renderBtnContinue = ( ) => {
     return (
       <div className="d-flex pt-4">
         <Button outline
                 color="success"
-                onClick={ this.updateFormState }>
-          { this.state.formState === 'extra' ?
-            'Get schedules' : 'Save and continue' }
+                onClick={ this.nextFormState }>
+          { 'extra'.startsWith(this.state.formState)
+            ? 'Get schedules' : 'Save and continue' }
           <i className="fas fa-arrow-right pl-2"> </i>
         </Button>
       </div>
@@ -122,21 +109,20 @@ class Home extends Component {
         <h4 className="font-weight-bolder mb-4">
           Degree program
         </h4>
-        <Label for="inputDegree">Degree program</Label>
+        <Label for="title">Degree program</Label>
         <Input type="select"
-               name="degree"
-               id="inputDegree"
-               onChange={ this.updateFormState }
-               defaultValue={ this.state.degreeForm.degree.title }>
-          { Object.values(this.props.degrees).map((degree, i) =>
-            <option
-              key={ i }
-              name={ degree.title }>
+               name="title"
+               id="inputTitle"
+               onChange={ this.handleInput }
+               defaultValue={ this.state.form.degree.title }>
+          { Object.values(this.props.degrees.filter(c => c.title !== 'Undergraduate Degrees')).map((degree, i) =>
+            <option key={ i }
+                    name={ degree.title }>
               { degree.title }
             </option>
           ) }
         </Input>
-        { this.renderFormNext() }
+        { this.renderBtnContinue() }
       </div>
     );
   };
@@ -144,32 +130,15 @@ class Home extends Component {
   renderFormCore = ( ) => {
     return (
       <div>
-        <Label>Select University Core you've completed.</Label>
-        <div className="d-flex flex-wrap">
-        </div>
-        { this.renderFormNext() }
-      </div>
-    );
-  };
-  
-  renderFormMajor = ( ) => {
-    let categories = this.props.degrees[0].categories;
-    for (let degree of this.props.degrees)
-      if (degree.title === this.state.degreeForm.degree.title)
-        categories = degree.categories;
-    
-    return (
-      <div>
         <h4 className="font-weight-bolder mb-4">
-          Major requirements
+          Core requirements
         </h4>
-        <p>Select the classes you've already taken.</p>
+        <p>Select the University Core classes you've already taken.</p>
         <div>
-          { categories.map((each, i) =>
-            <div className="mb-3">
-              <p
-                className="font-weight-bold mb-2"
-                key={ i }>
+          { this.props.degrees.filter(d => d.title === 'Undergraduate Degrees')[0].categories.map((each, i) =>
+            <div key={ i }
+                 className="mb-3">
+              <p className="font-weight-bold mb-2">
                 { each.name }
               </p>
               <div className="degree-form d-flex flex-wrap">
@@ -178,19 +147,49 @@ class Home extends Component {
             </div>
           ) }
         </div>
-        { this.renderFormNext() }
+        { this.renderBtnContinue() }
       </div>
-    );
+    )
+  };
+  
+  renderFormMajor = ( ) => {
+    return (
+      <div>
+        <h4 className="font-weight-bolder mb-4">
+          Major requirements
+        </h4>
+        <p>Select the classes you've already taken.</p>
+        <div>
+          { this.props.degrees.filter(d => d.title === this.state.form.degree.title)[0].categories.map((each, i) =>
+            <div className="mb-3">
+              <p key={ i }
+                 className="font-weight-bold mb-2">
+                { each.name }
+              </p>
+              <div className="degree-form d-flex flex-wrap">
+                { this.renderRequirements(each) }
+              </div>
+            </div>
+          ) }
+        </div>
+        { this.renderBtnContinue() }
+      </div>
+    )
   };
   
   renderFormExtra = ( ) => {
     return (
       <div>
-        <Label>Mess with some of these other cool filters.</Label>
+        <h4 className="font-weight-bolder mb-4">
+          Finishing touches
+        </h4>
+        <p>See if you would like to try any of these extra restrictions.</p>
+        <div>
         
-        { this.renderFormNext() }
+        </div>
+        { this.renderBtnContinue() }
       </div>
-    );
+    )
   };
   
   renderRequirements = ( category ) => {
@@ -200,16 +199,11 @@ class Home extends Component {
           item = item.toString().replace(/[,]+/g, ' or ');
         
         return (
-          <div key={ i }>
+          <div key={ `${i}-container` }>
             <div className="small font-weight-bold">
               { item.option }
             </div>
-            <Badge
-              color="light"
-              className="m-1 p-2 border-bottom"
-              onClick={ this.toggleOneCourse }>
-              { item }
-            </Badge>
+            <BadgeCourse name={ item } />
           </div>
         )
       } else if (Object.prototype.toString.call(item) === '[object Object]') {
@@ -220,86 +214,89 @@ class Home extends Component {
             key={ i }
             className="mx-3">
             { isOption &&
-              <p className={
-                `mb-0 font-weight-bold text-dark w-100 ${i === 0 ? '' : 'mt-3'}`
-                }>
+              <p className={ `mb-0 font-weight-bold text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
                 { item.option }
               </p>
             }
             { Object.values(item.reqs).map((req, i) => {
-              if (req.toString().startsWith('<p>')) {
+              if (req.toString().startsWith('<p>'))
                 return (
-                  <div
-                    key={ i }
-                    dangerouslySetInnerHTML={{ __html: req }}>
+                  <div key={ i }
+                       dangerouslySetInnerHTML={{ __html: req }}>
                   </div>
                 );
-              } else {
-                if (req.toString().indexOf(',') > -1)
+              
+              if (req.toString().indexOf(',') > -1)
                   req = req.toString().replace(/[,]+/g, ' or ');
   
-                return (
-                  <Badge
-                    key={ i }
-                    color="light"
-                    className="m-1 p-2 border-bottom"
-                    onClick={this.toggleOneCourse}>
-                    {req}
-                  </Badge>
-                );
-              }
+              return (
+                <BadgeCourse key={ `${req}-badge` }
+                             name={ req } />
+              )
             }) }
           </div>
         )
-      } else {
-        if (item.indexOf('<li>') > -1) {
-          return (
-            <div
-              key={ i }
-              dangerouslySetInnerHTML={{ __html: item }}>
-            </div>
-          );
-        }
-        
-        if (item.indexOf('<p>') > -1)
-          item = item.replace(/<\/?p>/g, '');
-        
-        return (
-          <Badge
-            key={ i }
-            color="light"
-            className="m-1 p-2 border-bottom"
-            onClick={ this.toggleOneCourse }>
-            { item }
-          </Badge>
-        )
       }
+      
+      if (item.indexOf('<li>') > -1)
+        return (
+          <div key={ i }
+               dangerouslySetInnerHTML={{ __html: item }}>
+          </div>
+        );
+      
+      if (item.indexOf('<p>') > -1)
+        item = item.replace(/<\/?p>/g, '');
+      
+      return (
+        <BadgeCourse name={ item } />
+      )
     })
   };
   
-  toggleOneCourse = ( e ) => {
-    const options = [ 'badge-primary', 'badge-light' ];
-    options.forEach(color => e.target.classList.toggle(color));
-  };
-  
-  forceFormState = ( to ) => {
+  handleInput = ( e ) => {
+    let name = e.target.name;
+    let value;
+    
+    switch (e.target.type) {
+      case 'checkbox':
+        value = e.target.checked;
+        break;
+      
+      case 'email':
+      case 'select-one':
+      case 'tel':
+      case 'text':
+      case 'textarea':
+        value = e.target.value;
+        break;
+      
+      default:
+        console.log('handleInput: surprising input type => ' + e.target.type);
+        break;
+    }
+    
+    console.log(`handleInput: { ${name} => ${value} }`);
     this.setState({
-      formState: to,
-    })
+      form: {
+        [this.state.formState]: {
+          [name]: value,
+        },
+      },
+    });
   };
   
-  updateFormState = ( e ) => {
+  nextFormState = ( ) => {
     let state = {
       formState: this.state.formState,
-      degreeForm: this.state.degreeForm,
+      form: this.state.form,
     };
     
-    switch (this.state.formState) {
+    switch (state.formState) {
       case 'degree':
         state.formState = 'core';
-        state.degreeForm.degree = {
-          title: e.target.value,
-        };
+        if (typeof state.form.degree.title === 'undefined')
+          state.form.degree.title = this.props.degrees[0].title;
         break;
       
       case 'core':
@@ -314,8 +311,17 @@ class Home extends Component {
         console.log('done');
         break;
     }
-    
+  
     this.setState(state);
+  };
+  
+  setFormState = ( to ) => {
+    this.setState({ formState: to });
+  };
+  
+  toggleOneCourse = ( e ) => {
+    const options = [ 'badge-primary', 'badge-light' ];
+    options.forEach(color => e.target.classList.toggle(color));
   };
   
 }

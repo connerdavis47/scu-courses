@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom'
 import Degrees from 'imports/api/degrees/degrees'
 
 const RemotePages = [
+  'UndergraduateDegrees',
   'Bioengineering',
   'CivilEngineering',
   'ComputerEngineering',
@@ -15,14 +16,10 @@ let prefix = '';
 
 let scrapeAll = ( ) => {
   try {
-    for (let page of RemotePages) {
+    for (let page of RemotePages)
       loadDOM(page).then(dom => {
-        let degrees = parseDOM(dom);
-        Degrees.insert(degrees[0]);
-        if (degrees.length > 1)
-          Degrees.insert(degrees[1]);
+        for (const d of parseDOM(dom)) Degrees.insert(d);
       });
-    }
   } catch (err) {
     console.log('err ' + err);
   } finally {
@@ -58,7 +55,7 @@ let parseDOM = ( dom ) => {
         || elemContains(elem, "Upper-Division Courses")
         || elemContains(elem, "Laboratories")
         || elemContains(elem, "Minor")
-        || elemContains(elem, "Bachelor"))
+        || elemContains(elem, "Program"))
         return;
       
       // find the end of the section and slice at that point
@@ -74,7 +71,8 @@ let parseDOM = ( dom ) => {
       if (elemContains(elem, "Requirements for the Majors"))
         degrees = parseDegrees(Object.values(categories));
       // try to parse a page with only one degree program
-      else if (elemContains(elem, "Requirements for the Major"))
+      else if (elemContains(elem, "Requirements for the Major")
+        || elemContains(elem, "Requirements for the Bachelor"))
         degrees[0].categories = parseDegree(Object.values(categories));
     }
   });
@@ -123,10 +121,13 @@ let parseDegree = ( elems ) => {
         }
       });
       
-      categories.push({
-        name: elem.textContent,
-        reqs: parseSection(section),
-      });
+      const reqs = parseSection(section);
+      if (reqs.length > 0) {
+        categories.push({
+          name: elem.textContent,
+          reqs: parseSection(section),
+        });
+      }
     }
   });
   
