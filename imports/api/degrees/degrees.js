@@ -1,9 +1,10 @@
-import { Mongo } from 'meteor/mongo';
-import SimpleSchema from 'simpl-schema';
+import { Meteor } from 'meteor/meteor'
+import { Mongo } from 'meteor/mongo'
+import SimpleSchema from 'simpl-schema'
 
 const Degrees = new Mongo.Collection('degrees');
 
-const schema = new SimpleSchema({
+Degrees.schema = new SimpleSchema({
   
   /**
    * The formal title of the degree.
@@ -12,7 +13,6 @@ const schema = new SimpleSchema({
   title: {
     type: String,
     required: true,
-    regEx: /[A-Za-z\s]+/,
     label: 'Degree Program',
   },
   
@@ -20,23 +20,29 @@ const schema = new SimpleSchema({
    * The four-letter prefix assigned to each academic department's courses.
    * "COEN"
    */
-  prefix: {
+  /*prefix: {
     type: String,
     required: true,
     regEx: /[A-Z]{4}/,
     label: 'Prefix',
-  },
+  },*/
   
   /**
    * A list of Course objects that identify individual course requirements.
    * "COEN 20 - Intro to Embedded Systems"
    */
-  reqs: {
+  categories: {
     type: Object,
     required: true,
     label: 'Requirements',
   },
   
 });
+
+if (Meteor.isServer) {
+  Meteor.publish('degrees.public', () => {
+    return Degrees.find({ });
+  });
+}
 
 export default Degrees;

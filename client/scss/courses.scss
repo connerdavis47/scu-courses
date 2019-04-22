@@ -10,23 +10,91 @@ h1,h2,h3,h4,h5,h6 {
   font-family: 'Arial', sans-serif;
 }
 
+.border-bottom-thicker {
+  border-bottom-width: 2px !important;
+}
+
+.border-secondary {
+  border-color: rgba(108, 117, 125, .2) !important;
+}
+
+.construction-notice {
+  border: 2px solid #ffe8d3;
+}
+
 /* Header.jsx */
 
 .header-scu {
   min-height: auto;
 }
 
+.nav-top-custom {
+  border: 0 !important;
+}
+
+.bg-primary-less {
+  background-color: darken($brand-primary, 2%);
+}
+
 /* Home.jsx */
 
-.home-degree-form {
+.degree-form {
+
+  ul li {
+    margin-bottom: .5rem;
+
+    p {
+      margin-bottom: 0;
+    }
+  }
 
   .badge {
+    align-items: center;
     cursor: pointer;
-    flex: 1 0 22%;
+    display: flex;
+    flex: 1 22%;
+    justify-content: center;
+    overflow-wrap: break-word;
+    white-space: inherit;
 
     &:hover {
       box-shadow: 0 0 1px $brand-primary;
     }
+  }
+
+  .small {
+    width: 100%;
+  }
+
+}
+
+.degree-form-category {
+  align-items: center;
+  display: flex;
+
+  span {
+    border-top: 1px solid rgba(0, 0, 0, .2);
+    content: "";
+    flex: 1 1 auto;
+  }
+}
+
+.degree-form-progress-list {
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .degree-form-progress-active,
+  li:hover {
+    background-color: rgba(211, 189, 205, 0.2);
+    cursor: pointer;
+  }
+
+  .degree-form-progress-active {
+    font-weight: bold;
   }
 
 }

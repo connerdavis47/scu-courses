@@ -1,8 +1,7 @@
 import React, { Component, } from 'react'
 import { Button, Form, InputGroup, InputGroupAddon, Input, } from 'reactstrap'
-import { hot } from 'react-hot-loader'
 
-import Course from 'imports/ui/component/Course';
+import Course from 'imports/ui/component/Course'
 
 /**
  * A page that lets students search for classes that are currently available and
@@ -68,13 +67,10 @@ class Classes extends Component {
     event.preventDefault();
     
     let res = await new Promise((resolve, reject) => {
-      Meteor.call('search', {
-          q: this.state.form.q,
-        }, (err, response) => {
-          if (err) return reject(err);
-          resolve(response);
-        }
-      );
+      Meteor.call('api.search', { q: this.state.form.q, }, (err, res) => {
+        if (err) return reject(err);
+        resolve(res);
+      });
       
       return resolve;
     }).catch(err => console.warn(err));
@@ -91,4 +87,4 @@ class Classes extends Component {
   };
   
 }
-export default hot(module)(Classes)
+export default Classes

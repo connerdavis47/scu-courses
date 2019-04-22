@@ -15,7 +15,6 @@ module.exports = {
         'decoratorsBeforeExport': false,
       }
     ],
-    'react-hot-loader/babel',
   ],
   
 };

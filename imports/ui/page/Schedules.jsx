@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { hot } from 'react-hot-loader'
 import { Carousel } from 'react-responsive-carousel'
 
 import 'react-responsive-carousel/lib/styles/carousel.min.css'
@@ -213,4 +212,5 @@ class Schedules extends Component {
   }
   
 }
-export default hot(module)(Schedules)
+
+export default Schedules;

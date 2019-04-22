@@ -1,6 +1,5 @@
 import React, { Component, } from 'react'
 import { Badge, InputGroup, InputGroupAddon, } from 'reactstrap'
-import { hot } from 'react-hot-loader/index'
 
 /**
  * One course listed on the Classes page, found in search results as well as
@@ -115,4 +114,5 @@ class Course extends Component {
   };
   
 }
-export default hot(module)(Course)
+
+export default Course;

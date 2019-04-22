@@ -1,98 +1,11 @@
+import { withTracker } from 'meteor/react-meteor-data'
 import React, { Component, } from 'react'
-import { Badge, Button, Form, Label, Input, } from 'reactstrap'
-import { hot } from 'react-hot-loader'
+import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 
-const Degrees = [
-  'Select your Degree',
-  'Applied Mathematics',
-  'Bioengineering',
-  'Civil Engineering',
-  'Computer Engineering',
-  'Electrical Engineering',
-  'General Engineering',
-  'Mechanical Engineering',
-];
-
-const UGRAD_CORE = [
-  'Critical Thinking & Writing 1',
-  'Critical Thinking & Writing 2',
-  'Second Language',
-  'Religion, Theology & Culture 1',
-  'Religion, Theology & Culture 2',
-  'Religion, Theology & Culture 3',
-  'Ethics',
-  'Civic Engagement',
-  'Diversity: U.S. Perspectives',
-  'Arts',
-  'Natural Science',
-  'Social Science',
-  'Science, Technology & Society',
-];
-
-const UGRAD_COEN = [
-  'ENGR 1',
-  'COEN 10',
-  'COEN 11',
-  'COEN 12',
-  'COEN 19',
-  'COEN 20',
-  'COEN 21',
-  'COEN 79',
-  'COEN 122',
-  'COEN 146',
-  'COEN 171',
-  'COEN 174',
-  'COEN 175',
-  'COEN 177',
-  'COEN 179',
-  'COEN 194',
-  'COEN 195',
-  'COEN 196',
-  'Elective (Upper-Div)',
-  'Elective (Upper-Div)',
-  'Elective (Upper-Div)',
-  'ELEN 50',
-  'ELEN 153',
-  'ENGL 181',
-  'MATH 11',
-  'MATH 12',
-  'MATH 13',
-  'MATH 14',
-  'PHYS 31',
-  'PHYS 32',
-  'PHYS 33',
-  'CHEM 11',
-  'AMTH 106 / MATH 22',
-  'AMTH 108',
-  'MATH 53 / CSCI 166 / AMTH 118',
-  'Educational Enrichment',
-];
-
-const FormState = Object.freeze({
-  
-  /**
-   * The user is currently entering their degree program.
-   */
-  DEGREE: 'degree',
-  
-  /**
-   * The user is currently selecting University Core courses they have already
-   * satisfied.
-   */
-  CORE: 'core',
-  
-  /**
-   * The user is currently selecting completed classes within their major.
-   */
-  MAJOR: 'major',
-  
-  /**
-   * The user is possibly choosing extra filters, such as the desired earliest
-   * class time or chunks of time when they cannot take classes.
-   */
-  EXTRA: 'extra',
-  
-});
+import Degrees from 'imports/api/degrees/Degrees'
+import Subheader from 'imports/ui/component/Subheader'
+import CourseBadge from 'imports/ui/component/CourseBadge';
+import ConstructionNotice from 'imports/ui/page/ConstructionNotice'
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -105,81 +18,112 @@ class Home extends Component {
     
     this.state = {
   
-      /**
-       * The current active form state, which controls what should be displayed
-       * within the form. We use this primarily because the whole form is
-       * arguably information overload and rightly should be split into chunks.
-       */
-      formState: FormState.DEGREE,
+      formState: 'degree',
+      form: {
+        degree: { },
+        core: { },
+        major: { },
+        finishing: { },
+      },
   
     };
   }
   
   render( ) {
+    console.log(this.state);
     return (
-      <section id="home-degree-form"
-               className="home-degree-form">
-        <h2 className="mb-4">Tell us a little about yourself.</h2>
-        <Form className="border p-4">
-          { (() => {
-            /*
-              Display only one form group at a time to help user deal with
-              information overload.
-             */
-            switch (this.state.formState) {
-              case 'degree':
-                return this.renderFormDegree();
-                
-              case 'core':
-                return this.renderFormCore();
-                
-              case 'major':
-                return this.renderFormMajor();
-                
-              case 'extra':
-                return this.renderFormExtra();
-            }
-          })() }
-        </Form>
+      <section className="degree-form"
+               id="degree-form">
+        <Subheader content="Tell us a little about yourself." />
+        <div className="container mb-5">
+          <Row>
+            <Col sm="4">
+              <h5 className="mb-0 pb-3 border-bottom border-bottom-thicker border-primary">
+                My progress
+              </h5>
+              <ol className="degree-form-progress-list list-unstyled">
+                { this.renderBtnProgress('degree', 'Degree program') }
+                { this.renderBtnProgress('core', 'Core requirements') }
+                { this.renderBtnProgress('major', 'Major requirements') }
+                { this.renderBtnProgress('finishing', 'Finishing touches') }
+              </ol>
+            </Col>
+            <Col sm="7"
+                 className="ml-4">
+              <Form>
+                { (() => {
+                  switch (this.state.formState) {
+                    case 'degree':
+                      return this.renderFormDegree();
+            
+                    case 'core':
+                      return this.renderFormCore();
+            
+                    case 'major':
+                      return this.renderFormMajor();
+            
+                    case 'finishing':
+                      return this.renderFormFinishing();
+                  }
+                })() }
+              </Form>
+            </Col>
+          </Row>
+        </div>
       </section>
     )
   }
   
-  renderFormNav = ( ) => {
+  renderBtnProgress = ( formState, title ) => {
+    const active = this.state.formState === formState
+      ? 'degree-form-progress-active' : '';
+    const completed = (!(typeof this.state.form[formState] === 'undefined') &&
+      Object.values(this.state.form[formState]).length > 0)
+        ? 'text-success' : 'text-light';
+    
     return (
-      <div className="d-flex justify-content-between border-top mt-4 pt-4">
-        <Button outline
-                color="danger"
-                onClick={ () => { this.updateFormState(false) } }>
-          <i className="fas fa-arrow-left pr-2"> </i> Go back
-        </Button>
-        <Button outline
-                color="success"
-                onClick={ () => { this.updateFormState(true) } }>
-          { this.state.formState === FormState.EXTRA ?
-            'Get schedules' : 'Next' }
-          <i className="fas fa-arrow-right pl-2"> </i>
-        </Button>
-      </div>
+      <li className={ `${active} border-bottom border-secondary p-4` }
+          onClick={ () => this.setFormState(formState) }>
+        { title }
+        <i className={ `fas fa-check-circle text-success ${completed}` }> </i>
+      </li>
+    )
+  };
+  
+  renderBtnContinue = ( ) => {
+    return (
+      <Button outline
+              color="success"
+              onClick={ this.nextFormState }>
+        { 'finishing'.startsWith(this.state.formState)
+          ? 'Get schedules' : 'Save and continue' }
+        <i className="fas fa-arrow-right pl-2"> </i>
+      </Button>
     )
   };
   
   renderFormDegree = ( ) => {
     return (
       <div>
-        <Label for="inputDegree">Degree Program</Label>
-        <Input type="select"
-               name="degree"
-               id="inputDegree"
-               onChange={ () => { this.updateFormState(true) } }>
-          { Object.values(Degrees).map((degree, i) =>
-            <option
-              key={ i }
-              name={ degree }>
-              { degree }
-            </option>
-          )}
-        </Input>
+        <h4 className="font-weight-bolder mb-4">
+          Degree program
+        </h4>
+        <p>
+          <Label for="title">Degree program</Label>
+          <Input type="select"
+                 name="title"
+                 id="inputTitle"
+                 onChange={ this.handleInput }
+                 defaultValue={ this.state.form.degree.title }>
+            { this.sortedDegrees().map((degree, i) =>
+              <option key={ i }
+                      name={ degree.title }>
+                { degree.title }
+              </option>
+            ) }
+          </Input>
+        </p>
+        { this.renderBtnContinue() }
       </div>
     );
   };
@@ -187,88 +131,207 @@ class Home extends Component {
   renderFormCore = ( ) => {
     return (
       <div>
-        <Label>Select University Core you've completed.</Label>
-        <div className="d-flex flex-wrap">
-          { Object.values(UGRAD_CORE).map((course, i) =>
-            <Badge
-              key={ `C${i}` }
-              color="light"
-              className="m-1 p-2 border"
-              onClick={ this.toggleOneCourse }>
-              { ` ${course}` }
-            </Badge>
-          )}
+        <h4 className="font-weight-bolder mb-4">
+          Core requirements
+        </h4>
+        <ConstructionNotice/>
+        <p>Select the University Core classes you've already taken.</p>
+        <div>
+          { this.props.degrees.filter(d => d.title === 'Undergraduate Degrees')[0].categories.map((each, i) =>
+            <div key={ i }
+                 className="mb-4">
+              <p key={ i }
+                 className="degree-form-category font-weight-bold mb-2">
+                { each.name }
+                <span className="ml-3"> </span>
+              </p>
+              <div className="degree-form d-flex flex-wrap">
+                { this.renderRequirements(each) }
+              </div>
+            </div>
+          ) }
         </div>
-        { this.renderFormNav() }
+        { this.renderBtnContinue() }
       </div>
-    );
+    )
   };
   
   renderFormMajor = ( ) => {
     return (
       <div>
-        <Label>And pick the degree courses you've already finished.</Label>
-        <div className="home-form-courses d-flex flex-wrap">
-          { Object.values(UGRAD_COEN).map((course, i) =>
-            <Badge
-              key={ `M${i}` }
-              color="light"
-              className="m-1 p-2 border"
-              onClick={ this.toggleOneCourse }>
-              { ` ${course}` }
-            </Badge>
-          )}
+        <h4 className="font-weight-bolder mb-4">
+          Major requirements
+        </h4>
+        <ConstructionNotice/>
+        <p>Select the classes you've already taken.</p>
+        <div>
+          { console.log(this.state.form.degree.title) }
+          { this.props.degrees.filter(d => d.title === this.state.form.degree.title)[0].categories.map((each, i) =>
+            <div className="mb-4">
+              <p key={ i }
+                 className="degree-form-category font-weight-bold mb-2">
+                { each.name }
+                <span className="ml-3"> </span>
+              </p>
+              <div className="degree-form d-flex flex-wrap">
+                { this.renderRequirements(each) }
+              </div>
+            </div>
+          ) }
         </div>
-        { this.renderFormNav() }
+        { this.renderBtnContinue() }
       </div>
-    );
+    )
   };
   
-  renderFormExtra = ( ) => {
+  renderFormFinishing = ( ) => {
     return (
       <div>
-        <Label>Mess with some of these other cool filters.</Label>
+        <h4 className="font-weight-bolder mb-4">
+          Finishing touches
+        </h4>
+        <p>See if you would like to try any of these extra restrictions.</p>
+        <div>
         
-        { this.renderFormNav() }
+        </div>
+        { this.renderBtnContinue() }
       </div>
-    );
+    )
   };
   
-  /**
-   * @public
-   * Toggles the active state of a course badge in this form. Badges colored
-   * brand primary are considered active, light gray inactive.
-   *
-   * @param e The badge to toggle to gray or brand primary.
-   */
-  toggleOneCourse = ( e ) => {
-    const options = [ 'badge-primary', 'badge-light' ];
-    options.forEach(color => e.target.classList.toggle(color));
+  renderRequirements = ( category ) => {
+    return Object.values(category.reqs).map((item, i) => {
+      if (Array.isArray(item)) {
+        item = item.toString().replace(/[,]+/g, ' -or- ');
+      } else if (Object.prototype.toString.call(item) === '[object Object]') {
+        const isOption = item.hasOwnProperty('option');
+  
+        return (
+          <div key={ i }>
+            { isOption &&
+              <p className={ `mb-1 text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
+                { item.option }
+              </p>
+            }
+            <div>
+              { Object.values(item.reqs).map((req, i) => {
+                if (req.indexOf('<') > -1 && req.indexOf('>') > -1) {
+                  req = req.replace(/<\/?p>/g, '');
+  
+                  return (
+                    <div key={ i }
+                         dangerouslySetInnerHTML={{ __html: req }}>
+                    </div>
+                  )
+                }
+      
+                if (req.toString().indexOf(',') > -1)
+                  req = req.toString().replace(/[,]+/g, ' or ');
+      
+                return (
+                  <CourseBadge key={ `${i}badge` }
+                               name={ req } />
+                )
+              }) }
+            </div>
+          </div>
+        )
+      }
+      
+      if (item.indexOf('<p>') > -1)
+        item = item.replace(/<\/?p>/g, '');
+      
+      if (item.indexOf('<li>') > -1) {
+        return (
+          <div key={ i }
+               dangerouslySetInnerHTML={{ __html: item }}>
+          </div>
+        )
+      }
+      
+      return (
+        <CourseBadge name={ item } />
+      )
+    })
   };
   
-  updateFormState = ( next ) => {
-    let to;
+  handleInput = ( e ) => {
+    let name = e.target.name;
+    let value;
     
-    switch (this.state.formState) {
-      case 'degree':
-        to = next ? FormState.CORE : FormState.DEGREE;
+    switch (e.target.type) {
+      case 'checkbox':
+        value = e.target.checked;
         break;
       
-      case 'core':
-        to = next ? FormState.MAJOR : FormState.DEGREE;
+      case 'email':
+      case 'select-one':
+      case 'tel':
+      case 'text':
+      case 'textarea':
+        value = e.target.value;
         break;
-        
-      case 'major':
-        to = next ? FormState.EXTRA : FormState.CORE;
-        break;
-        
-      case 'extra':
-        to = next ? FormState.EXTRA : FormState.MAJOR;
+      
+      default:
+        console.log('handleInput: surprising input type => ' + e.target.type);
         break;
     }
     
-    this.setState({ formState: to, });
+    console.log(`handleInput: { ${name} => ${value} }`);
+    this.setState({
+      form: {
+        [this.state.formState]: {
+          [name]: value,
+        },
+      },
+    });
+  };
+  
+  nextFormState = ( ) => {
+    let state = {
+      formState: this.state.formState,
+      form: this.state.form,
+    };
+    
+    switch (state.formState) {
+      case 'degree':
+        state.formState = 'core';
+        if (typeof this.state.form.degree.title === 'undefined')
+          state.form.degree.title = this.sortedDegrees()[0].title;
+        break;
+      
+      case 'core':
+        state.formState = 'major';
+        break;
+        
+      case 'major':
+        state.formState = 'finishing';
+        break;
+        
+      case 'finishing':
+        console.log('done');
+        break;
+    }
+  
+    this.setState(state);
+  };
+  
+  setFormState = ( to ) => {
+    this.setState({ formState: to });
+  };
+  
+  sortedDegrees = ( ) => {
+    return Object.values(this.props.degrees.filter(c => c.title !== 'Undergraduate Degrees'))
+      .sort((a, b) => (a.title > b.title) ? 1 : ((b.title > a.title) ? -1 : 0));
   };
   
 }
-export default hot(module)(Home)
+
+export default withTracker(props => {
+  const handle = Meteor.subscribe('degrees.public');
+  
+  return {
+    degreesLoading: !handle.ready(),
+    degrees: Degrees.find({}).fetch(),
+  };
+})(Home);

@@ -1,9 +1,5 @@
-import { hot } from 'react-hot-loader'
 import React from 'react'
-import {
-  BrowserRouter as Router,
-  Route,
-} from 'react-router-dom'
+import { BrowserRouter as Router, Route, } from 'react-router-dom'
 
 import Header from 'imports/ui/component/Header'
 import Home from 'imports/ui/page/Home'
@@ -27,12 +23,13 @@ const App = () => (
   <Router>
     <div>
       <Header links={ Object.keys(Routes) } />
-      <div className="container py-5">
+      <section id="main-content">
         { Object.entries(Routes).map(([path, component], i) =>
           <Route key={ i } exact path={ `/${path}` } component={ component } />
         ) }
-      </div>
+      </section>
     </div>
   </Router>
 );
-export default hot(module)(App)
+
+export default App;
