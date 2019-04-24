@@ -1,6 +1,7 @@
 import { JSDOM } from 'jsdom'
 
 import Degrees from 'imports/api/degrees/degrees'
+import { compare } from 'imports/startup/server/scrape.tests'
 
 /**
  * The filename of each degree program's webpage on the Undergraduate Bulletin.
@@ -73,7 +74,7 @@ const RemotePages = [
  * Attempts to scrape every web page found in #RemotePages, and stores each
  * degree that was detected into the Mongo database.
  */
-let scrapeAll = ( ) => {
+let scrape = ( ) => {
   try
   {
     for (const chapter of RemotePages)
@@ -87,7 +88,7 @@ let scrapeAll = ( ) => {
           {
             for (const d of degrees)
             {
-              console.log(`scrape.js#scrapeAll(): emitted -> ${JSON.stringify(d)}`);
+              console.log(`scrape.js#scrapeAll(): emitted -> ${d.title}, passes tests -> (${compare(d)})`);
               Degrees.insert(d);
             }
           }
@@ -214,32 +215,6 @@ let parseDOM = ( dom ) => {
   return degrees;
 };
 
-let parseDegrees = ( nodes ) => {
-  let degrees = [ ];
-  let end = -1;
-  
-  nodes.some((e, i) => {
-    if (i === nodes.length - 1) {
-      degrees[degrees.length - 1].categories = parseDegree(nodes.slice(end + 1));
-      return true;
-    }
-    
-    if (categoryHeader(e)
-      && (containsText(e, 'Bachelor of ') || containsText(e, 'Major in '))) {
-      if (i > 1) {
-        end = i;
-        degrees[degrees.length - 1].categories = parseDegree(nodes.slice(1, i));
-      }
-  
-      degrees.push({
-        title: e.textContent.substr(e.textContent.indexOf(' in ') + 4),
-        categories: [],
-      });
-    }
-  });
-  
-  return degrees;
-};
 /**
  * Attempts to parse a degree for its set of categories, each of which contains
  * some list of requirements.
@@ -283,6 +258,32 @@ let parseDegree = ( nodes ) => {
   
   return categories;
 };
+let parseDegrees = ( nodes ) => {
+  let degrees = [ ];
+  let end = -1;
+  
+  nodes.some((e, i) => {
+    if (i === nodes.length - 1) {
+      degrees[degrees.length - 1].categories = parseDegree(nodes.slice(end + 1));
+      return true;
+    }
+    
+    if (categoryHeader(e)
+      && (containsText(e, 'Bachelor of ') || containsText(e, 'Major in '))) {
+      if (i > 1) {
+        end = i;
+        degrees[degrees.length - 1].categories = parseDegree(nodes.slice(1, i));
+      }
+      
+      degrees.push({
+        title: e.textContent.substr(e.textContent.indexOf(' in ') + 4),
+        categories: [],
+      });
+    }
+  });
+  
+  return degrees;
+};
 
 /**
  * Attempts to parse the contents of a category on the degree page. These are
@@ -313,9 +314,9 @@ let parseCategory = ( nodes ) => {
       if (isTag(nodes[0], 'p') && isTag(nodes[1], 'ul'))
       {
         matches.push({
-          pre: trimHtml(nodes[0].textContent),
           reqs: containsCourse(nodes[1].textContent)
                 ? parseCourseList(nodes[1]) : [ trimHtml(nodes[1].textContent) ],
+          pre: trimHtml(nodes[0].textContent),
         });
         
         /* "pop" nodes from the front (like a stack) */
@@ -323,12 +324,13 @@ let parseCategory = ( nodes ) => {
         nodes.shift();
       }
       // match <ul>...</ul> followed immediately by <p>...</p>
-      else if (isTag(nodes[0], 'ul') && isTag(nodes[1], 'p'))
+      else if (isTag(nodes[0], 'ul') && isTag(nodes[1], 'p')
+              && !containsText(nodes[1], ':'))
       {
         matches.push({
-          post: trimHtml(nodes[1].textContent),
           reqs: containsCourse(nodes[0].textContent)
                 ? parseCourseList(nodes[0]) : [ trimHtml(nodes[0].textContent) ],
+          post: trimHtml(nodes[1].textContent),
         });
         
         nodes.shift();
@@ -344,7 +346,6 @@ let parseCategory = ( nodes ) => {
       else if (isTag(nodes[0], 'p'))
       {
         let text = nodes[0].outerHTML;
-        text = text.replace('\n', '');
         
         nodes.shift();
         while (nodes.length > 0) {
@@ -352,9 +353,7 @@ let parseCategory = ( nodes ) => {
           nodes.shift();
         }
         
-        matches.push({
-          reqs: [text],
-        });
+        matches.push(trimHtml(text));
       }
       else break;
     }
@@ -409,10 +408,10 @@ let parseCourseListItem = ( li ) => {
   
   // example: One course from COEN 161, 163, 164 -> [ ["COEN 161", "COEN 163", "COEN 164"] ]
   if (/^One (from|course from)/.test(text) && containsCourse(text))
-    return [ parseExpression(text.substr(text.match(/\w{1,4} ([0-9]){1,3}A?L?/).index)) ];
+    return parseExpression(text.substr(text.match(/\w{4} [0-9]{1,3}[ABC]?L?/).index), true);
   
   // example: AMTH 106 or MATH 22 -> [ ["AMTH 106", "MATH 22"] ]
-  if (text.match(/^\w{1,4} ([0-9]){1,3}A?L?/))
+  if (startsWithCourse(text))
     return parseExpression(text);
   
   // last resort: return raw HTML
@@ -432,23 +431,30 @@ let prefix = '';
  * that there can be several "nesting" layers in the text and it will interpret
  * ANDs before ORs the whole way.
  *
- * @param li
+ * @param text
  *        The input to scan, which is a list item.
+ * @param forceOr
+ *        An optional parameter which allows us
  * @returns {Array}
  *          Containing all of the items matched, with sub-arrays indicating a
  *          set of classes where one should be taken (OR).
  */
-let parseExpression = ( li ) => {
+let parseExpression = ( text, forceOr = false ) => {
   let match;
   
+  if (forceOr)
+  {
+    let splits = text.split(/(either\s|\sor\s|\/|,\sand\s|,\s|;\s)+/g);
+    expression.push(splits.filter(t => isCourse(t)));
+  }
   // try to match an AND expression first
-  if ((match = andExpression(li)) !== li)
+  else if ((match = andExpression(text)) !== text)
   {
     for (const split of match)
       matchExpression(split);
   }
   // otherwise try to match an OR
-  else if ((match = orExpression(li)) !== li)
+  else if ((match = orExpression(text)) !== text)
   {
     /* we store ORs as a sub-array */
     let save = expression;
@@ -481,7 +487,7 @@ let matchExpression = ( expr ) => {
     expression.push(expr);
   }
   // matches a continuing course title ("11")
-  else if (expr.match(/^\d{1,3}A?L?$/))
+  else if (expr.match(/^\d{1,3}[ABC]?L?$/))
   {
     /* disregard labs, since we can search for these with the API on a user basis */
     if (expr.includes('L')) return;
@@ -495,36 +501,36 @@ let matchExpression = ( expr ) => {
 /**
  * Searches for a valid keyword denoting an "AND" expression.
  *
- * @param str
+ * @param text
  *        The string to search in.
  * @returns {*}
  *          An array of substrings from the resulting expression, or the original
  *          string itself if there was no "AND".
  */
-let andExpression = ( str ) => {
-  if (str.includes(', and '))     return str.split(', and ');
-  else if (str.includes(' and ')) return str.split(' and ');
-  else if (str.includes(', '))    return str.split(', ');
-  else if (str.includes('; '))    return str.split('; ');
-                                  return str;
+let andExpression = ( text ) => {
+  if (text.includes(', and '))     return text.split(', and ');
+  else if (text.includes(' and ')) return text.split(' and ');
+  else if (text.includes(', '))    return text.split(', ');
+  else if (text.includes('; '))    return text.split('; ');
+                                  return text;
 };
 /**
  * Searches for a valid keyword denoting an "OR" expression.
  *
- * @param str
+ * @param text
  *        The string to search in.
  * @returns {*}
  *          An array of substrings from the resulting expression, or the original
  *          string itself if there was no "OR".
  */
-let orExpression = ( str ) => {
-  if (str.includes('either '))    return [
-                                    str.substr('either '.length, str.indexOf('or ') - 'or '.length),
-                                    str.substr(str.indexOf('or ') + 'or '.length),
+let orExpression = ( text ) => {
+  if (text.includes('either '))    return [
+                                    text.substr('either '.length, text.indexOf('or ') - 'or '.length),
+                                    text.substr(text.indexOf('or ') + 'or '.length),
                                   ];
-  else if (str.includes(' or '))  return str.split(' or ');
-  else if (str.includes('/'))     return str.split('/');
-                                  return str;
+  else if (text.includes(' or '))  return text.split(' or ');
+  else if (text.includes('/'))     return text.split('/');
+                                  return text;
 };
 
 /**
@@ -550,12 +556,12 @@ let isTag = ( e, tag ) => e.nodeName.toLowerCase() === tag;
  * Scans a string to see if it contains at least one string matching the course
  * regex, which can be found at `#isCourse(str)`.
  *
- * @param str
+ * @param text
  *        The string to scan.
  * @returns {boolean}
  *          True if this string contains at least one valid course.
  */
-let containsCourse = ( str ) => /\w{4} ([0-9]){1,3}A?L?/.test(str);
+let containsCourse = ( text ) => /\w{4} [0-9]{1,3}[ABC]?L?/.test(text);
 /**
  * Scans a string to see if it matches the acceptable regex for a course at
  * SCU, which is defined as zero to four letters, one space, one to three numbers,
@@ -565,12 +571,13 @@ let containsCourse = ( str ) => /\w{4} ([0-9]){1,3}A?L?/.test(str);
  * expression. "10" passes because this signifies that a previous element
  * already defined the four-letter prefix, and it will be forwarded.
  *
- * @param str
+ * @param text
  *        The string to scan.
  * @returns {boolean}
  *          True if this string is a valid course.
  */
-let isCourse = ( str ) => /^\w{0,4} ([0-9]){1,3}A?L?$/.test(str);
+let isCourse = ( text ) => /^\w{0,4} [0-9]{1,3}[ABC]?L?$/.test(text);
+let startsWithCourse = ( text ) => /^\w{4} [0-9]{1,3}[ABC]?L?/.test(text);
 
 /**
  * Sections are denoted by `<h2>...</h2>`. A section is a group of categories.
@@ -654,4 +661,4 @@ let replaceSingleItemArrays = ( arr ) => {
   return arr;
 };
 
-export { scrapeAll };
+export { scrape };

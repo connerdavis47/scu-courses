@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor'
 import rp from 'request-promise'
 
 import Degrees from 'imports/api/degrees/degrees'
-import { scrapeAll } from 'imports/startup/server/scrape'
+import { scrape } from 'imports/startup/server/scrape'
 
 /**
  * The root path to the API. Important since the search's behavior can be
@@ -43,7 +43,7 @@ if (Meteor.isServer) {
     
     // on startup, always prune old Degrees and scrape for newest
     Degrees.remove({});
-    scrapeAll();
+    scrape();
   
   });
 }
