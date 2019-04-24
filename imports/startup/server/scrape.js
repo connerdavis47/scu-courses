@@ -2,101 +2,237 @@ import { JSDOM } from 'jsdom'
 
 import Degrees from 'imports/api/degrees/degrees'
 
+/**
+ * The filename of each degree program's webpage on the Undergraduate Bulletin.
+ * <br />
+ * A major breaking point in the parser, since a filename change on the remote
+ * server will result in this parser no longer seeing that page at all.
+ */
 const RemotePages = [
-  'UndergraduateDegrees',
-  'Bioengineering',
-  'CivilEngineering',
-  'ComputerEngineering',
-  'ElectricalEngineering',
-  'GeneralEngineering',
-  'MechanicalEngineering',
+  
+  /*{
+    chapter: 'chapter-3',
+    pages: [
+      'UndergraduateDegrees',
+      'Anthropology',
+      'ArtandArtHistory',
+      'Biology',
+      'ChemistryandBiochemistry',
+      'ChildStudies',
+      'Classics',
+      'Communication',
+      'Economics',
+      'English',
+      'EnvironementalStudiesandSciences',
+      'EthnicStudiesProgram',
+      'History',
+      'IndividualStudies',
+      'MathematicsandComputerScience',
+      'ModernLanguagesandLiteratures',
+      'Music',
+      'Neuroscience',
+      'Philosophy',
+      'Physics',
+      'PoliticalScience',
+      'Psychology',
+      'PublicHealthProgram',
+      'ReligiousStudies',
+      'Sociology',
+      'TheatreandDance',
+      'WomensandGenderStudies',
+    ],
+  },
+  {
+    chapter: 'chapter-4',
+    pages: [
+      'UndergraduateDegrees',   // Leavey School of Business - Core Curriculum
+      'Accounting',
+      'Economics',
+      'Finance',
+      'Management',
+      'Marketing',
+      'OperationsManagementandInformationSystems',
+    ],
+  },*/
+  {
+    chapter: 'chapter-5',
+    pages: [
+      'UndergraduateDegrees',   // School of Engineering - Core Curriculum
+      'Bioengineering',
+      'CivilEngineering',
+      'ComputerEngineering',    // also includes Web Design & Engineering
+      'ElectricalEngineering',
+      'GeneralEngineering',
+      'MechanicalEngineering',
+    ],
+  },
+  
 ];
 
-let prefix = '';
-
+/**
+ * Attempts to scrape every web page found in #RemotePages, and stores each
+ * degree that was detected into the Mongo database.
+ */
 let scrapeAll = ( ) => {
-  try {
-    for (let page of RemotePages)
-      loadDOM(page).then(dom => {
-        for (const d of parseDOM(dom)) Degrees.insert(d);
-      });
-  } catch (err) {
-    console.log('err ' + err);
-  } finally {
-    console.log('done');
+  try
+  {
+    for (const chapter of RemotePages)
+    {
+      for (const page of chapter.pages)
+      {
+        loadDOM(chapter.chapter, page).then(dom => {
+          const degrees = parseDOM(dom);
+          
+          if (degrees.length > 0)
+          {
+            for (const d of degrees)
+            {
+              console.log(`scrape.js#scrapeAll(): emitted -> ${JSON.stringify(d)}`);
+              Degrees.insert(d);
+            }
+          }
+        })
+      }
+    }
+  }
+  catch (err)
+  {
+    console.log(`scrape.js#scrapeAll(): error -> ${err}`);
   }
 };
-
-let loadDOM = ( page ) => {
+/**
+ * Loads the DOM of the specified page. Returns a subset of that DOM, targeting
+ * a class called `.markdown-section` which contains the actual content of the
+ * Undergraduate Bulletin page, excluding its extraneous navigation system.
+ *
+ * @param page
+ *        The page to load.
+ * @returns {Promise<any>}
+ *          After the DOM has been fully loaded.
+ */
+let loadDOM = ( chapter, page ) => {
   return new Promise(resolve => {
     JSDOM
       .fromURL(
-        `https://www.scu.edu/bulletin/undergraduate/chapter-5/${page}.html`
+        `https://www.scu.edu/bulletin/undergraduate/${chapter}/${page}.html`
       )
       .then(dom =>
         // return only the section of the DOM we want to parse
         resolve(dom.window.document.body.querySelector('.markdown-section'))
-      );
-  });
+      )
+  })
 };
-
+/**
+ * Attempts to parse the provided DOM for degree programs. The fundamental
+ * structure of the output produced by this function generally looks like:
+ * <br />
+ * [
+ *  {
+ *    title: "Computer Science and Engineering",
+ *    categories: [
+ *      {
+ *        name: "English",
+ *        reqs: [
+ *          "ENGL 181",
+ *          ... (more requirements)
+ *        ]
+ *      }, ... (more categories)
+ *    ]
+ *  }, ... (more degrees)
+ * ]
+ * <br />
+ *
+ * @param dom
+ *        The Document Object Model to parse.
+ * @returns {Array}
+ *          Containing the list of degrees parsed within this DOM.
+ */
 let parseDOM = ( dom ) => {
-  let degrees = [ ];
-  degrees.push({
-    title: formatDegreeTitle(dom.querySelector('h1').textContent),
-    categories: [],
-  });
+  // <h1>"Department of ..." OR "... Program"</h1>
+  let degreeTitle;
+  if (dom.querySelector('h1')) {
+    degreeTitle = trimDegreeTitle(dom.querySelector('h1').textContent);
+  } else {
+    degreeTitle = trimDegreeTitle(dom.querySelector('h2').textContent);
+  }
   
+  let degrees = [ ];
+  
+  // loop through every element in the DOM
   const nodes = Object.values(dom.children);
-  nodes.some((elem, i) => {
-    if (categoryHeader(elem)) {
-      // skip sections with any of these titles
-      if (elemContains(elem, "Lower-Division Courses")
-        || elemContains(elem, "Upper-Division Courses")
-        || elemContains(elem, "Laboratories")
-        || elemContains(elem, "Minor")
-        || elemContains(elem, "Program"))
+  nodes.some((e, i) => {
+    /*
+      match SECTION headers, which are <h2>-level elements that contain
+      subsections identified as CATEGORIES.
+     */
+    if (sectionHeader(e))
+    {
+      // completely skip sections with any of these titles
+      if (containsText(e, 'Lower-Division Courses')
+        || containsText(e, 'Upper-Division Courses')
+        || containsText(e, 'Laboratories')
+        || containsText(e, 'Minor')
+        || containsText(e, 'Program'))
         return;
       
-      // find the end of the section and slice at that point
-      let categories = nodes.slice(i + 1);
-      categories.some((elem, j) => {
-        if (categoryHeader(elem)) {
-          categories = categories.slice(0, j);
+      // otherwise, search for the end of the section and slice to that point
+      let section = nodes.slice(i + 1);
+      section.some((f, j) => {
+        /* the next section header indicates the end of this one */
+        if (sectionHeader(f))
+        {
+          section = section.slice(0, j);
           return true;
         }
       });
       
-      // try to parse several degree programs on one page
-      if (elemContains(elem, "Requirements for the Majors"))
-        degrees = parseDegrees(Object.values(categories));
+      // try to parse more than one degree on the same page
+      if (containsText(e, 'Requirements for the Majors'))
+      {
+        const attempt = parseDegrees(Object.values(section));
+        
+        for (const d of attempt)
+          if (d.categories.length > 0)
+            degrees.push(d);
+      }
+      
       // try to parse a page with only one degree program
-      else if (elemContains(elem, "Requirements for the Major")
-        || elemContains(elem, "Requirements for the Bachelor"))
-        degrees[0].categories = parseDegree(Object.values(categories));
+      else if (containsText(e, "Requirements for the Major")
+            || containsText(e, "Requirements for the Bachelor"))
+      {
+        const attempt = parseDegree(Object.values(section));
+        
+        if (attempt.length > 0)
+          degrees.push({
+            title: degreeTitle,
+            categories: attempt,
+          });
+      }
     }
   });
   
   return degrees;
 };
 
-let parseDegrees = ( elems ) => {
+let parseDegrees = ( nodes ) => {
   let degrees = [ ];
   let end = -1;
-  elems.some((elem, i) => {
-    if (i === elems.length - 1) {
-      degrees[degrees.length - 1].categories = parseDegree(elems.slice(end + 1));
+  
+  nodes.some((e, i) => {
+    if (i === nodes.length - 1) {
+      degrees[degrees.length - 1].categories = parseDegree(nodes.slice(end + 1));
       return true;
     }
     
-    if (sectionHeader(elem) && elemContains(elem, 'Bachelor of ')) {
-      if (i > 0) {
+    if (categoryHeader(e)
+      && (containsText(e, 'Bachelor of ') || containsText(e, 'Major in '))) {
+      if (i > 1) {
         end = i;
-        degrees[degrees.length - 1].categories = parseDegree(elems.slice(1, i));
+        degrees[degrees.length - 1].categories = parseDegree(nodes.slice(1, i));
       }
   
       degrees.push({
-        title: elem.textContent.substr(elem.textContent.indexOf('in') + 3),
+        title: e.textContent.substr(e.textContent.indexOf(' in ') + 4),
         categories: [],
       });
     }
@@ -104,80 +240,116 @@ let parseDegrees = ( elems ) => {
   
   return degrees;
 };
-
-let parseDegree = ( elems ) => {
+/**
+ * Attempts to parse a degree for its set of categories, each of which contains
+ * some list of requirements.
+ *
+ * @param nodes
+ *        The DOM nodes found within this degree.
+ * @returns {Array}
+ *          A list of categories, ready to be plugged into a degree object.
+ */
+let parseDegree = ( nodes ) => {
   let categories = [ ];
   
-  elems.some((elem, i) => {
-    if (sectionHeader(elem)) {
-      let section = elems.slice(i + 1);
-      section.some((elem, j) => {
-        if (sectionHeader(elem)) {
-          section = section.slice(0, j);
+  nodes.some((e, i) => {
+    if (categoryHeader(e))
+    {
+      let contents = nodes.slice(i + 1);
+      contents.some((f, j) => {
+        // find the end of this section and slice at that point
+        if (categoryHeader(f))
+        {
+          contents = contents.slice(0, j);
           return true;
         }
       });
       
-      const matches = parseSection(section);
-      if (matches.length > 0) {
+      const matches = parseCategory(contents);
+      if (matches.length > 0)
         categories.push({
-          name: elem.textContent,
+          name: e.textContent,
           reqs: matches,
         });
-      }
     }
   });
+  
+  // sometimes pages do not have any category headers, just courses
+  if (categories.length === 0)
+    categories.push({
+      name: 'Uncategorized',
+      reqs: parseCategory(nodes.slice(1)),
+    });
   
   return categories;
 };
 
-let parseSection = ( elems ) => {
+/**
+ * Attempts to parse the contents of a category on the degree page. These are
+ * often dynamic and may contain blocks that are contextually connected but
+ * are not described as such with the HTML, so we must interpret it ourselves.
+ *
+ * @param nodes
+ *        The nodes found inside this category, not including the header.
+ * @returns {Array}
+ *          All of the matches we made to requirements, where each array item
+ *          may be a course string, an array containing course strings, or an
+ *          object containing fields that describe a text block.
+ */
+let parseCategory = ( nodes ) => {
+  // all results including course requirements are considered matches, since
+  // we don't always get *only* courses, and sometimes must emit raw HTML that
+  // cannot reliably be interpreted into meaningful data
   let matches = [ ];
   
-  if (elems.length === 1 && elemTag(elems[0], 'ul'))
-    matches = matches.concat(parseCourseList(elems[0]));
+  // match one <ul>...</ul> and only one --> a course list
+  if (nodes.length === 1 && isTag(nodes[0], 'ul'))
+    matches = matches.concat(parseCourseList(nodes[0]));
   else
   {
-    while (elems.length > 1)
+    while (nodes.length > 1)
     {
-      if (elemTag(elems[0], 'p') && elemTag(elems[1], 'ul'))
+      // match <p>..</p> followed immediately by <ul>...</ul>
+      if (isTag(nodes[0], 'p') && isTag(nodes[1], 'ul'))
       {
         matches.push({
-          option: elems[0].textContent.replace('\n', ' '),
-          reqs: (/\w{0,4} ([0-9]){1,3}A?L?/g.test(elems[1].textContent))
-            ? parseCourseList(elems[1]) : [elems[1].outerHTML.replace('\n', ' ')],
+          pre: trimHtml(nodes[0].textContent),
+          reqs: containsCourse(nodes[1].textContent)
+                ? parseCourseList(nodes[1]) : [ trimHtml(nodes[1].textContent) ],
         });
-        elems.shift();
-        elems.shift();
+        
+        /* "pop" nodes from the front (like a stack) */
+        nodes.shift();
+        nodes.shift();
       }
-      else if (elemTag(elems[0], 'ul') && elemTag(elems[1], 'p'))
+      // match <ul>...</ul> followed immediately by <p>...</p>
+      else if (isTag(nodes[0], 'ul') && isTag(nodes[1], 'p'))
       {
-        if (elems[1].textContent.endsWith(':'))
-        {
-          matches.push(parseCourseList(elems[0]));
-          elems.shift();
-        }
-        else
-        {
-          matches = matches.concat(parseCourseList(elems[0]));
-          elems.shift();
-          elems.shift();
-        }
+        matches.push({
+          post: trimHtml(nodes[1].textContent),
+          reqs: containsCourse(nodes[0].textContent)
+                ? parseCourseList(nodes[0]) : [ trimHtml(nodes[0].textContent) ],
+        });
+        
+        nodes.shift();
+        nodes.shift();
       }
-      else if (elemTag(elems[0], 'ul'))
+      // match one <ul>...</ul> --> a course list
+      else if (isTag(nodes[0], 'ul'))
       {
-        matches = matches.concat(parseCourseList(elems[0]));
-        elems.shift();
+        matches = matches.concat(parseCourseList(nodes[0]));
+        nodes.shift();
       }
-      else if (elemTag(elems[0], 'p'))
+      // match one <p>...</p> --> a text block we can't interpret
+      else if (isTag(nodes[0], 'p'))
       {
-        let text = elems[0].outerHTML;
+        let text = nodes[0].outerHTML;
         text = text.replace('\n', '');
         
-        elems.shift();
-        while (elems.length > 0) {
-          text += elems[0].outerHTML;
-          elems.shift();
+        nodes.shift();
+        while (nodes.length > 0) {
+          text += nodes[0].outerHTML;
+          nodes.shift();
         }
         
         matches.push({
@@ -191,122 +363,281 @@ let parseSection = ( elems ) => {
   return matches;
 };
 
+/**
+ * Attempts to parse a <ul>...</ul> for course lists. Each list item may or may
+ * not contain a sequence of courses. We scan each individually, searching for
+ * expressions that we can identify as course sequences.
+ *
+ * @param ul
+ *        The list to scan.
+ * @returns {Array}
+ *          All of the contents found within this list, including those which
+ *          were not found to match a course expression, stored as raw HTML.
+ */
 let parseCourseList = ( ul ) => {
   let reqs = [];
   
-  for (let li of ul.children)
+  for (const li of ul.children)
+  {
     reqs = reqs.concat(parseCourseListItem(li));
+    expression = []; // reset expression after each <li>
+  }
   
   return reqs;
 };
-
+/**
+ * Attempts to scan a <li>...</li> which contains a string that may or may not
+ * contain a valid list of courses. If it does, we will attempt to match specific
+ * expressions found within, including namely ANDs and ORs. Otherwise, the list
+ * item will be interpreted as its entire `.innerHTML` to avoid items that are
+ * too complex to parse reliably.
+ *
+ * @param li
+ *        The list item to scan.
+ * @returns {*}
+ *          An array of courses if there was at least one, or a string containing
+ *          the HTML of this element if there were zero.
+ */
 let parseCourseListItem = ( li ) => {
-  let courses = [ ];
+  // input: <li>...</li>
+  const html = trimHtml(li.innerHTML),
+        text = trimHtml(li.textContent);
   
-  let html = li.outerHTML.replace(/[\n\r]+/g, ' ');
-  let text = li.textContent;
-  text = text.replace(/[\n\r]+/g, ' ');
-  text = text.replace(/[()]+/g, '');
+  // example: ENGL 181 -> ["ENGL 181"]
+  if (isCourse(text))
+    return [ text ];
   
-  if (text.endsWith(' '))
-    text = text.slice(0, -1);
+  // example: One course from COEN 161, 163, 164 -> [ ["COEN 161", "COEN 163", "COEN 164"] ]
+  if (/^One (from|course from)/.test(text) && containsCourse(text))
+    return [ parseExpression(text.substr(text.match(/\w{1,4} ([0-9]){1,3}A?L?/).index)) ];
   
-  if (course(text)) {
-    courses.push(text);
-    return courses;
-  } else {
-    if (text.startsWith('One course from ') && /\w{0,4} ([0-9]){1,3}A?L?/g.test(text)) {
-      courses.push([]);
-      parseCourseExpression(courses[0], text.substr('One course from '.length));
-    } else if (text.startsWith('One from ')) {
-      courses.push([]);
-      parseCourseExpression(courses[0], text.substr('One from '.length));
-    } else if (text.indexOf('listed') > -1
-            || !(/^\w{0,4} [0-9]{1,3}A?L?/).test(text)) {
-      console.log(text);
-      courses.push(html);
-    } else {
-      parseCourseExpression(courses, text);
-    }
-  }
-
-  return courses;
+  // example: AMTH 106 or MATH 22 -> [ ["AMTH 106", "MATH 22"] ]
+  if (text.match(/^\w{1,4} ([0-9]){1,3}A?L?/))
+    return parseExpression(text);
+  
+  // last resort: return raw HTML
+  return html;
 };
 
-let parseCourseExpression = ( output, input ) => {
+let expression = [ ];
+let prefix = '';
+
+/**
+ * Attempts to derive a valid expression from a list item string input. The two
+ * main types of expressions are ANDs, which declare a list of courses that should
+ * all be taken, and ORs, which declare a list of courses where one should be
+ * picked.
+ * <br />
+ * This function will search recursively for matching expressions, which means
+ * that there can be several "nesting" layers in the text and it will interpret
+ * ANDs before ORs the whole way.
+ *
+ * @param li
+ *        The input to scan, which is a list item.
+ * @returns {Array}
+ *          Containing all of the items matched, with sub-arrays indicating a
+ *          set of classes where one should be taken (OR).
+ */
+let parseExpression = ( li ) => {
   let match;
   
-  if ((match = andExpression(input)) !== input)
-    for (let split of match)
-      matchExpression(output, split);
-  else if ((match = orExpression(input)) !== input) {
-    let orBlock = [ ];
-    
-    for (let split of match)
-      matchExpression(orBlock, split);
-    
-    output.push(orBlock);
-  }
-};
-
-let matchExpression = ( output, input ) => {
-  if (input.endsWith(' '))
-    input = input.slice(0, -1);
-  else if (input[0] === ' ')
-    input = input.substr(1);
-  
-  if (course(input)) {
-    output.push(input);
-    prefix = input.substr(0, 4);
-  } else if (input.match(/^\d{1,3}A?L?$/)) {
-    if (input.indexOf('L') > -1)
-      return;
-    
-    input = prefix + ' ' + input;
-    output.push(input);
-  }
-  else
-    parseCourseExpression(output, input);
-};
-
-let andExpression = ( str ) => {
-  if (str.indexOf(', and ') > -1)
-    return str.split(', and ');
-  else if (str.indexOf(' and ') > -1)
-    return str.split(' and ');
-  else if (str.indexOf(', ') > -1)
-    return str.split(', ');
-  else if (str.indexOf('; ') > -1)
-    return str.split('; ');
-  return str;
-};
-
-let orExpression = ( str ) => {
-  if (str.indexOf('either ') > -1)
+  // try to match an AND expression first
+  if ((match = andExpression(li)) !== li)
   {
-    let splits = [];
-    splits.push(str.substr('either '.length, str.indexOf(' ') - 3));
-    splits.push(str.substr(str.indexOf('or') + 3));
-    return splits;
+    for (const split of match)
+      matchExpression(split);
   }
-  else if (str.indexOf(' or ') > -1)
-    return str.split(' or ');
-  else if (str.indexOf('/') > -1)
-    return str.split('/');
-  return str;
+  // otherwise try to match an OR
+  else if ((match = orExpression(li)) !== li)
+  {
+    /* we store ORs as a sub-array */
+    let save = expression;
+    expression = [ ];
+    
+    for (const split of match)
+      matchExpression(split);
+    
+    save.push(expression);
+    expression = save;
+  }
+  
+  return expression;
+};
+/**
+ * Attempts to match a valid course entry listed inside of a larger course list
+ * expression. For example, in the list item "COEN 10, 11, 12" we will interpret
+ * each of "COEN 10", "11", "12" as individual courses in a sequence.
+ *
+ * @param expr
+ *        The input expression to scan for matches.
+ */
+let matchExpression = ( expr ) => {
+  expr = trimHtml(expr);
+  
+  // matches a full course title ("COEN 11")
+  if (isCourse(expr))
+  {
+    prefix = expr.substr(0, 4);
+    expression.push(expr);
+  }
+  // matches a continuing course title ("11")
+  else if (expr.match(/^\d{1,3}A?L?$/))
+  {
+    /* disregard labs, since we can search for these with the API on a user basis */
+    if (expr.includes('L')) return;
+    
+    expression.push(prefix + ' ' + expr);
+  }
+  // otherwise, try to parse a whole new expression (a "sub-expression")
+  else
+    parseExpression(expr);
+};
+/**
+ * Searches for a valid keyword denoting an "AND" expression.
+ *
+ * @param str
+ *        The string to search in.
+ * @returns {*}
+ *          An array of substrings from the resulting expression, or the original
+ *          string itself if there was no "AND".
+ */
+let andExpression = ( str ) => {
+  if (str.includes(', and '))     return str.split(', and ');
+  else if (str.includes(' and ')) return str.split(' and ');
+  else if (str.includes(', '))    return str.split(', ');
+  else if (str.includes('; '))    return str.split('; ');
+                                  return str;
+};
+/**
+ * Searches for a valid keyword denoting an "OR" expression.
+ *
+ * @param str
+ *        The string to search in.
+ * @returns {*}
+ *          An array of substrings from the resulting expression, or the original
+ *          string itself if there was no "OR".
+ */
+let orExpression = ( str ) => {
+  if (str.includes('either '))    return [
+                                    str.substr('either '.length, str.indexOf('or ') - 'or '.length),
+                                    str.substr(str.indexOf('or ') + 'or '.length),
+                                  ];
+  else if (str.includes(' or '))  return str.split(' or ');
+  else if (str.includes('/'))     return str.split('/');
+                                  return str;
 };
 
-let formatDegreeTitle = ( title ) => {
+/**
+ * @param e
+ *        The tag whose text we want to scan.
+ * @param text
+ *        The text we are expecting to find.
+ * @returns {boolean}
+ *          True if the text is found in this element.
+ */
+let containsText = ( e, text ) => e.textContent.includes(text);
+/**
+ * @param e
+ *        The tag we want to scan.
+ * @param tag
+ *        The name of the tag we are expecting to find.
+ * @returns {boolean}
+ *          True if the tag name is found to equal the expected value.
+ */
+let isTag = ( e, tag ) => e.nodeName.toLowerCase() === tag;
+
+/**
+ * Scans a string to see if it contains at least one string matching the course
+ * regex, which can be found at `#isCourse(str)`.
+ *
+ * @param str
+ *        The string to scan.
+ * @returns {boolean}
+ *          True if this string contains at least one valid course.
+ */
+let containsCourse = ( str ) => /\w{4} ([0-9]){1,3}A?L?/.test(str);
+/**
+ * Scans a string to see if it matches the acceptable regex for a course at
+ * SCU, which is defined as zero to four letters, one space, one to three numbers,
+ * and an optional A and/or L at the end.
+ * <br />
+ * For example, "COEN 10", "10", "10L", and "BIOE 164AL" all positively match the
+ * expression. "10" passes because this signifies that a previous element
+ * already defined the four-letter prefix, and it will be forwarded.
+ *
+ * @param str
+ *        The string to scan.
+ * @returns {boolean}
+ *          True if this string is a valid course.
+ */
+let isCourse = ( str ) => /^\w{0,4} ([0-9]){1,3}A?L?$/.test(str);
+
+/**
+ * Sections are denoted by `<h2>...</h2>`. A section is a group of categories.
+ * Every degree page shares a few in common, e.g. "Requirements for the Major(s)",
+ * "Upper-Division Courses" among others. This parser intentionally ignores all
+ * sections that are not pertinent to the major degree requirements.
+ *
+ * @param e
+ *        The element to scan.
+ * @returns {boolean}
+ *          True if this is a section header.
+ */
+let sectionHeader = ( e ) => isTag(e, 'h2');
+/**
+ * Categories are denoted by `<p><strong>...</strong></p>`. A category manifests
+ * in two ways. On most pages, a category is a named segment of degree
+ * requirements that are all somehow in common with one another, e.g., "English".
+ * <br />
+ * However, on pages that describe more than one degree program, there will be
+ * category headers denoting each degree program's content in addition to the
+ * actual category headers of each degree.
+ *
+ * @param e
+ *        The element to scan.
+ * @returns {boolean}
+ *          True if this is a category header.
+ */
+let categoryHeader = ( e ) => isTag(e, 'p') && isTag(e.firstChild, 'strong');
+
+/**
+ * Removes prefix, and sometimes suffix, found in every degree page's <h1>
+ * element, which is the title of the degree program.
+ *
+ * @param title
+ *        The title of the degree with some garbage around it.
+ * @returns {string}
+ *          The actual title of the degree.
+ */
+let trimDegreeTitle = ( title ) => {
   if (title.startsWith('Department of '))
     title = title.substr('Department of '.length);
   
   if (title.endsWith(' Program'))
     title = title.substr(0, title.length - ' Program'.length);
   
-  if (title.endsWith(' '))
-    title = title.slice(0, -1);
+  return trimHtml(title);
+};
+/**
+ * Removes generally undesirable characters from raw HTML strings interpreted
+ * via the DOM element `.innerHTML`property. These includes newlines, parentheses,
+ * and <p> tags, which all make it a little more difficult to format results on
+ * the web page.
+ *
+ * @param html
+ *        The `.innerHTML` to format.
+ * @returns {string}
+ *          The formatted HTML, which may just be text now.
+ */
+let trimHtml = ( html ) => {
+  html = html.replace(/[\n\r]+/g, ' ');
+  html = html.replace(/[()]+/g, '');
+  html = html.replace(/<\/?p>/g, '');
   
-  return title;
+  if (html.endsWith(' '))
+    html = html.slice(0, -1); // neat trick to trim last character of string
+  
+  return html;
 };
 
 let replaceSingleItemArrays = ( arr ) => {
@@ -321,26 +652,6 @@ let replaceSingleItemArrays = ( arr ) => {
   }, arr);
   
   return arr;
-};
-
-let course = ( str ) => {
-  return /^\w{0,4} ([0-9]){1,3}A?L?$/.test(str);
-};
-
-let elemContains = ( elem, match ) => {
-  return elem.textContent.indexOf(match) > -1;
-};
-
-let elemTag = ( elem, tag ) => {
-  return elem.nodeName.toLowerCase() === tag;
-};
-
-let categoryHeader = ( elem ) => {
-    return elemTag(elem, 'h2');
-};
-
-let sectionHeader = ( elem ) => {
-  return elemTag(elem, 'p') && elemTag(elem.firstChild, 'strong');
 };
 
 export { scrapeAll };

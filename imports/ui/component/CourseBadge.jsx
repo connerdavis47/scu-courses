@@ -10,7 +10,7 @@ class CourseBadge extends Component {
   render( ) {
     return (
       <Badge color="light"
-             className="m-1 p-3 border-bottom"
+             className={ `m-1 p-3 border-bottom ${this.isCourse(this.props.name) ? '' : 'badge-fill'}` }
              onClick={ this.toggle }>
         { this.props.name }
       </Badge>
@@ -21,6 +21,8 @@ class CourseBadge extends Component {
     const options = [ 'badge-primary', 'badge-light' ];
     options.forEach(color => e.target.classList.toggle(color));
   };
+  
+  isCourse = ( str ) => /^\w{0,4} ([0-9]){1,3}A?L?$/.test(str);
   
 }
 

@@ -17,19 +17,8 @@ Degrees.schema = new SimpleSchema({
   },
   
   /**
-   * The four-letter prefix assigned to each academic department's courses.
-   * "COEN"
-   */
-  /*prefix: {
-    type: String,
-    required: true,
-    regEx: /[A-Z]{4}/,
-    label: 'Prefix',
-  },*/
-  
-  /**
-   * A list of Course objects that identify individual course requirements.
-   * "COEN 20 - Intro to Embedded Systems"
+   * A list of categories, each containing their respective list of requirements.
+   * Every category will contain a list, even if that list has only one element.
    */
   categories: {
     type: Object,
@@ -39,10 +28,8 @@ Degrees.schema = new SimpleSchema({
   
 });
 
-if (Meteor.isServer) {
-  Meteor.publish('degrees.public', () => {
-    return Degrees.find({ });
-  });
-}
+// publish all degrees to the client
+if (Meteor.isServer)
+  Meteor.publish('degrees.public', () => Degrees.find({ }));
 
 export default Degrees;

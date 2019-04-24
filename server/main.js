@@ -3,5 +3,4 @@
   server. In other words, none of the client files.
  */
 
-import 'imports/startup/server/scrape'
 import 'imports/startup/server/index'

@@ -2,18 +2,24 @@ import { Meteor } from 'meteor/meteor'
 import rp from 'request-promise'
 
 import Degrees from 'imports/api/degrees/degrees'
-import { scrapeAll, } from 'imports/startup/server/scrape'
+import { scrapeAll } from 'imports/startup/server/scrape'
 
+/**
+ * The root path to the API. Important since the search's behavior can be
+ * altered by changing URL contents after this root.
+ */
 const scuApiRoot = 'https://www.scu.edu/apps/ws/courseavail';
 
 Meteor.methods({
   
   /**
-   * Queries the CourseAvail JSON API for classes fitting the provided search
-   * string and filters.
+   * Hits the CourseAvail JSON API for sections of courses available this
+   * quarter which match the input query.
    *
-   * @param text  The input text, which may be anything, i.e., class title.
-   * @returns {Promise<T>}  Once the POST request has been completed.
+   * @param text
+   *        The input text, which may be anything, i.e., class title.
+   * @returns {Promise<T>}
+   *          After the POST request has been completed.
    */
   'api.search'({ q: q, }) {
     return rp({
@@ -24,9 +30,10 @@ Meteor.methods({
         maxRes: 50,
       },
     }).then(body => {
-      const result = JSON.parse(body);
-      return result.results;
-    }).catch(err => { console.warn(err); });
+      return JSON.parse(body).results;
+    }).catch(err => {
+      throw new Meteor.Error('api-unavailable', `Could not query the remote API for data: ${err}`);
+    });
   },
   
 });
@@ -34,6 +41,7 @@ Meteor.methods({
 if (Meteor.isServer) {
   Meteor.startup(() => {
     
+    // on startup, always prune old Degrees and scrape for newest
     Degrees.remove({});
     scrapeAll();
   
