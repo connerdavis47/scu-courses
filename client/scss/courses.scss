@@ -40,11 +40,15 @@ h1,h2,h3,h4,h5,h6 {
 
 .degree-form {
 
-  ul li {
-    margin-bottom: .5rem;
+  ul {
+    margin-top: .5rem;
 
-    p {
-      margin-bottom: 0;
+    li {
+      margin-bottom: .5rem;
+
+      p {
+        margin-bottom: 0;
+      }
     }
   }
 
@@ -60,6 +64,10 @@ h1,h2,h3,h4,h5,h6 {
     &:hover {
       box-shadow: 0 0 1px $brand-primary;
     }
+  }
+
+  .badge-fill {
+    flex: 1 100%;
   }
 
   .small {

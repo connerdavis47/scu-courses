@@ -48,8 +48,7 @@ class Home extends Component {
                 { this.renderBtnProgress('finishing', 'Finishing touches') }
               </ol>
             </Col>
-            <Col sm="7"
-                 className="ml-4">
+            <Col sm="8">
               <Form>
                 { (() => {
                   switch (this.state.formState) {
@@ -202,39 +201,43 @@ class Home extends Component {
   renderRequirements = ( category ) => {
     return Object.values(category.reqs).map((item, i) => {
       if (Array.isArray(item)) {
-        item = item.toString().replace(/[,]+/g, ' -or- ');
+        item = item.toString().replace(/[,]+/g, ' or ');
       } else if (Object.prototype.toString.call(item) === '[object Object]') {
-        const isOption = item.hasOwnProperty('option');
+        const isPre = item.hasOwnProperty('pre');
+        const isPost = item.hasOwnProperty('post');
   
         return (
-          <div key={ i }>
-            { isOption &&
+          <React.Fragment key={ i }>
+            { isPre &&
               <p className={ `mb-1 text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
-                { item.option }
+                { item.pre }
               </p>
             }
-            <div>
-              { Object.values(item.reqs).map((req, i) => {
-                if (req.indexOf('<') > -1 && req.indexOf('>') > -1) {
-                  req = req.replace(/<\/?p>/g, '');
-  
-                  return (
-                    <div key={ i }
-                         dangerouslySetInnerHTML={{ __html: req }}>
-                    </div>
-                  )
-                }
-      
-                if (req.toString().indexOf(',') > -1)
-                  req = req.toString().replace(/[,]+/g, ' or ');
-      
+            { Object.values(item.reqs).map((req, i) => {
+              if (req.indexOf('<') > -1 && req.indexOf('>') > -1) {
+                req = req.replace(/<\/?p>/g, '');
+
                 return (
-                  <CourseBadge key={ `${i}badge` }
-                               name={ req } />
+                  <span key={ i }
+                        dangerouslySetInnerHTML={{ __html: req }}>
+                  </span>
                 )
-              }) }
-            </div>
-          </div>
+              }
+    
+              if (req.toString().indexOf(',') > -1)
+                req = req.toString().replace(/[,]+/g, ' or ');
+    
+              return (
+                <CourseBadge key={ `${i}badge` }
+                             name={ req } />
+              )
+            }) }
+            { isPost &&
+            <p className={ `mt-3 text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
+              { item.post }
+            </p>
+            }
+          </React.Fragment>
         )
       }
       
