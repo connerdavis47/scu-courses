@@ -325,7 +325,7 @@ let parseCategory = ( nodes ) => {
       }
       // match <ul>...</ul> followed immediately by <p>...</p>
       else if (isTag(nodes[0], 'ul') && isTag(nodes[1], 'p')
-              && !containsText(nodes[1], ':'))
+              && !nodes[1].textContent.endsWith(':'))
       {
         matches.push({
           reqs: containsCourse(nodes[0].textContent)
@@ -378,7 +378,7 @@ let parseCourseList = ( ul ) => {
   
   for (const li of ul.children)
   {
-    reqs = reqs.concat(parseCourseListItem(li));
+    reqs = reqs.concat(replaceSingleItemArrays(parseCourseListItem(li)));
     expression = []; // reset expression after each <li>
   }
   
@@ -407,8 +407,8 @@ let parseCourseListItem = ( li ) => {
     return [ text ];
   
   // example: One course from COEN 161, 163, 164 -> [ ["COEN 161", "COEN 163", "COEN 164"] ]
-  if (/^One (from|course from)/.test(text) && containsCourse(text))
-    return parseExpression(text.substr(text.match(/\w{4} [0-9]{1,3}[ABC]?L?/).index), true);
+  if (/^One (.?)(from|course from)/.test(text) && containsCourse(text))
+    return parseExpression(text.substr(text.match(/\w{4} [0-9]{1,3}[ABCDE]?L?/).index), true);
   
   // example: AMTH 106 or MATH 22 -> [ ["AMTH 106", "MATH 22"] ]
   if (startsWithCourse(text))
@@ -444,8 +444,15 @@ let parseExpression = ( text, forceOr = false ) => {
   
   if (forceOr)
   {
-    let splits = text.split(/(either\s|\sor\s|\/|,\sand\s|,\s|;\s)+/g);
-    expression.push(splits.filter(t => isCourse(t)));
+    let save = expression;
+    expression = [ ];
+  
+    const splits = text.split(/(either\s|\sor\s|\/|,\sand\s|,\s|;\s)+/g);
+    for (const split of splits.filter(t => (isCourse(t) || t.match(/^\d{1,3}[ABCDE]?L?$/))))
+      matchExpression(split);
+    
+    save.push(expression);
+    expression = save;
   }
   // try to match an AND expression first
   else if ((match = andExpression(text)) !== text)
@@ -483,11 +490,11 @@ let matchExpression = ( expr ) => {
   // matches a full course title ("COEN 11")
   if (isCourse(expr))
   {
-    prefix = expr.substr(0, 4);
+    prefix = expr.substring(0, 4);
     expression.push(expr);
   }
   // matches a continuing course title ("11")
-  else if (expr.match(/^\d{1,3}[ABC]?L?$/))
+  else if (expr.match(/^\d{1,3}[ABCDE]?L?$/))
   {
     /* disregard labs, since we can search for these with the API on a user basis */
     if (expr.includes('L')) return;
@@ -508,11 +515,11 @@ let matchExpression = ( expr ) => {
  *          string itself if there was no "AND".
  */
 let andExpression = ( text ) => {
-  if (text.includes(', and '))     return text.split(', and ');
-  else if (text.includes(' and ')) return text.split(' and ');
-  else if (text.includes(', '))    return text.split(', ');
-  else if (text.includes('; '))    return text.split('; ');
-                                  return text;
+  if (text.includes(', and '))      return text.split(', and ');
+  else if (text.includes(' and '))  return text.split(' and ');
+  else if (text.includes(', '))     return text.split(', ');
+  else if (text.includes('; '))     return text.split('; ');
+                                    return text;
 };
 /**
  * Searches for a valid keyword denoting an "OR" expression.
@@ -524,13 +531,14 @@ let andExpression = ( text ) => {
  *          string itself if there was no "OR".
  */
 let orExpression = ( text ) => {
-  if (text.includes('either '))    return [
-                                    text.substr('either '.length, text.indexOf('or ') - 'or '.length),
-                                    text.substr(text.indexOf('or ') + 'or '.length),
-                                  ];
-  else if (text.includes(' or '))  return text.split(' or ');
-  else if (text.includes('/'))     return text.split('/');
-                                  return text;
+  if (text.includes('either '))     return [
+      text.substring('either '.length, text.indexOf(' or ')),
+      text.substring(text.indexOf(' or ') + ' or '.length),
+  ];
+  else if (text.includes(', or'))   return text.split(', or');
+  else if (text.includes(' or '))   return text.split(' or ');
+  else if (text.includes('/'))      return text.split('/');
+                                    return text;
 };
 
 /**
@@ -561,7 +569,7 @@ let isTag = ( e, tag ) => e.nodeName.toLowerCase() === tag;
  * @returns {boolean}
  *          True if this string contains at least one valid course.
  */
-let containsCourse = ( text ) => /\w{4} [0-9]{1,3}[ABC]?L?/.test(text);
+let containsCourse = ( text ) => /\w{4} [0-9]{1,3}[ABCDE]?L?/.test(text);
 /**
  * Scans a string to see if it matches the acceptable regex for a course at
  * SCU, which is defined as zero to four letters, one space, one to three numbers,
@@ -576,8 +584,8 @@ let containsCourse = ( text ) => /\w{4} [0-9]{1,3}[ABC]?L?/.test(text);
  * @returns {boolean}
  *          True if this string is a valid course.
  */
-let isCourse = ( text ) => /^\w{0,4} [0-9]{1,3}[ABC]?L?$/.test(text);
-let startsWithCourse = ( text ) => /^\w{4} [0-9]{1,3}[ABC]?L?/.test(text);
+let isCourse = ( text ) => /^\w{0,4} [0-9]{1,3}[ABCDE]?L?$/.test(text);
+let startsWithCourse = ( text ) => /^\w{4} [0-9]{1,3}[ABCDE]?L?/.test(text);
 
 /**
  * Sections are denoted by `<h2>...</h2>`. A section is a group of categories.
@@ -621,7 +629,7 @@ let trimDegreeTitle = ( title ) => {
     title = title.substr('Department of '.length);
   
   if (title.endsWith(' Program'))
-    title = title.substr(0, title.length - ' Program'.length);
+    title = title.substring(0, title.length - ' Program'.length);
   
   return trimHtml(title);
 };
@@ -648,11 +656,15 @@ let trimHtml = ( html ) => {
 };
 
 let replaceSingleItemArrays = ( arr ) => {
+  if (!Array.isArray(arr)) return arr;
+  
   arr.forEach((item, i) => {
     if (Array.isArray(item))
     {
       if (item.length === 1)
         arr[i] = item[0];
+      else if (item.length === 0)
+        arr.splice(i, 1);
       else
         replaceSingleItemArrays(item);
     }
