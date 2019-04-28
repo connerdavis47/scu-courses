@@ -8,12 +8,16 @@ class CourseBadge extends Component {
   }
   
   render( ) {
-    return (
+    return this.startsWithCourse(this.props.name) ? (
       <Badge color="light"
-             className={ `m-1 p-3 border-bottom ${this.isCourse(this.props.name) ? '' : 'badge-fill'}` }
+             className={ `${this.isCourse(this.props.name) ? '' : 'badge-fill'} m-1 p-3 border-bottom` }
              onClick={ this.toggle }>
         { this.props.name }
       </Badge>
+    ) : (
+      <span className="badge-fill mb-2 pb-2 border-bottom text-muted">
+        { this.props.name }
+      </span>
     )
   }
   
@@ -22,7 +26,8 @@ class CourseBadge extends Component {
     options.forEach(color => e.target.classList.toggle(color));
   };
   
-  isCourse = ( str ) => /^\w{0,4} ([0-9]){1,3}A?L?$/.test(str);
+  isCourse = ( ) => /^\w{4} [0-9]{1,3}[ABCDE]?L?$/.test(this.props.name);
+  startsWithCourse = ( ) => /^\w{4} [0-9]{1,3}[ABCDE]?L?/.test(this.props.name);
   
 }
 

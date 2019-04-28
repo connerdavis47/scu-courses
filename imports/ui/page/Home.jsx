@@ -21,8 +21,8 @@ class Home extends Component {
       formState: 'degree',
       form: {
         degree: { },
-        core: { },
-        major: { },
+        core: [ ],
+        major: [ ],
         finishing: { },
       },
   
@@ -139,11 +139,11 @@ class Home extends Component {
           { this.props.degrees.filter(d => d.title === 'Undergraduate Degrees')[0].categories.map((each, i) =>
             <div key={ i }
                  className="mb-4">
-              <p key={ i }
+              <h5 key={ i }
                  className="degree-form-category font-weight-bold mb-2">
                 { each.name }
                 <span className="ml-3"> </span>
-              </p>
+              </h5>
               <div className="degree-form d-flex flex-wrap">
                 { this.renderRequirements(each) }
               </div>
@@ -167,11 +167,11 @@ class Home extends Component {
           { console.log(this.state.form.degree.title) }
           { this.props.degrees.filter(d => d.title === this.state.form.degree.title)[0].categories.map((each, i) =>
             <div className="mb-4">
-              <p key={ i }
+              <h5 key={ i }
                  className="degree-form-category font-weight-bold mb-2">
                 { each.name }
                 <span className="ml-3"> </span>
-              </p>
+              </h5>
               <div className="degree-form d-flex flex-wrap">
                 { this.renderRequirements(each) }
               </div>
@@ -200,62 +200,48 @@ class Home extends Component {
   
   renderRequirements = ( category ) => {
     return Object.values(category.reqs).map((item, i) => {
-      if (Array.isArray(item)) {
-        item = item.toString().replace(/[,]+/g, ' or ');
-      } else if (Object.prototype.toString.call(item) === '[object Object]') {
-        const isPre = item.hasOwnProperty('pre');
-        const isPost = item.hasOwnProperty('post');
-  
+      // deal with objects, e.g., { reqs: [], pre: '...' }
+      if (Object.prototype.toString.call(item) === '[object Object]')
+      {
         return (
           <React.Fragment key={ i }>
-            { isPre &&
-              <p className={ `mb-1 text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
-                { item.pre }
+            { item.hasOwnProperty('pre') &&
+              <p className={ `${i === 0 ? '' : 'mt-3'} mb-2 text-dark w-100` }>
+                <strong>
+                  { item.pre }
+                </strong>
               </p>
             }
-            { Object.values(item.reqs).map((req, i) => {
-              if (req.indexOf('<') > -1 && req.indexOf('>') > -1) {
-                req = req.replace(/<\/?p>/g, '');
-
-                return (
-                  <span key={ i }
-                        dangerouslySetInnerHTML={{ __html: req }}>
-                  </span>
-                )
-              }
-    
-              if (req.toString().indexOf(',') > -1)
-                req = req.toString().replace(/[,]+/g, ' or ');
-    
-              return (
-                <CourseBadge key={ `${i}badge` }
-                             name={ req } />
-              )
-            }) }
-            { isPost &&
-            <p className={ `mt-3 text-dark w-100 ${i === 0 ? '' : 'mt-3'}` }>
-              { item.post }
-            </p>
+            { Object.values(item.reqs).map((req, i) => this.renderOneRequirement(req, i)) }
+            { item.hasOwnProperty('post') &&
+              <p className="mt-3 text-dark w-100">
+                <em>
+                  { item.post }
+                </em>
+              </p>
             }
           </React.Fragment>
         )
       }
       
-      if (item.indexOf('<p>') > -1)
-        item = item.replace(/<\/?p>/g, '');
-      
-      if (item.indexOf('<li>') > -1) {
-        return (
-          <div key={ i }
-               dangerouslySetInnerHTML={{ __html: item }}>
-          </div>
-        )
-      }
-      
-      return (
-        <CourseBadge name={ item } />
-      )
+      // deal with simple requirements that have no pre/post text
+      return this.renderOneRequirement(item, i);
     })
+  };
+  
+  renderOneRequirement = ( item, key ) => {
+    if (Array.isArray(item))
+      item = item.toString().replace(/[,]+/g, ' or ');
+    
+    return item.includes('<') && item.includes('>') ? (
+      <div key={ key }
+           className="mt-3 text-muted"
+           dangerouslySetInnerHTML={{ __html: item }} />
+    ) : (
+      <CourseBadge key={ key }
+                   name={ item }
+                   onChange={ this.handleInput } />
+    )
   };
   
   handleInput = ( e ) => {
@@ -327,6 +313,8 @@ class Home extends Component {
     return Object.values(this.props.degrees.filter(c => c.title !== 'Undergraduate Degrees'))
       .sort((a, b) => (a.title > b.title) ? 1 : ((b.title > a.title) ? -1 : 0));
   };
+  
+  startsWithCourse = ( ) => /^\w{4} [0-9]{1,3}[ABCDE]?L?/.test(this.props.name);
   
 }
 

@@ -6,8 +6,12 @@ $brand-primary: #b30738;
 $brand-danger: #dc3545;
 $brand-success: #28a745;
 
-h1,h2,h3,h4,h5,h6 {
+h1,h2,h3,h4,h5,h6,p,em,strong {
   font-family: 'Arial', sans-serif;
+}
+
+em {
+  font-style: italic;
 }
 
 .border-bottom-thicker {
@@ -60,6 +64,10 @@ h1,h2,h3,h4,h5,h6 {
     justify-content: center;
     overflow-wrap: break-word;
     white-space: inherit;
+
+    &.text-muted {
+      cursor: default;
+    }
 
     &:hover {
       box-shadow: 0 0 1px $brand-primary;

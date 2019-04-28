@@ -88,7 +88,7 @@ let scrape = ( ) => {
           {
             for (const d of degrees)
             {
-              console.log(`scrape.js#scrapeAll(): emitted -> ${d.title}, passes tests -> (${compare(d)})`);
+              console.log(`scrape.js#scrapeAll(): emitted -> ${d.title}, test passed -> (${compare(d)})`);
               Degrees.insert(d);
             }
           }
@@ -106,6 +106,9 @@ let scrape = ( ) => {
  * a class called `.markdown-section` which contains the actual content of the
  * Undergraduate Bulletin page, excluding its extraneous navigation system.
  *
+ * @param chapter
+ *        The chapter containing this page, of which each school has their own,
+ *        e.g., School of Engineering is currently chapter five.
  * @param page
  *        The page to load.
  * @returns {Promise<any>}
@@ -150,12 +153,9 @@ let loadDOM = ( chapter, page ) => {
  */
 let parseDOM = ( dom ) => {
   // <h1>"Department of ..." OR "... Program"</h1>
-  let degreeTitle;
-  if (dom.querySelector('h1')) {
-    degreeTitle = trimDegreeTitle(dom.querySelector('h1').textContent);
-  } else {
-    degreeTitle = trimDegreeTitle(dom.querySelector('h2').textContent);
-  }
+  const degreeTitle = dom.querySelector('h1') ?
+    trimDegreeTitle(dom.querySelector('h1').textContent)
+    : trimDegreeTitle(dom.querySelector('h2').textContent);
   
   let degrees = [ ];
   
@@ -263,14 +263,16 @@ let parseDegrees = ( nodes ) => {
   let end = -1;
   
   nodes.some((e, i) => {
-    if (i === nodes.length - 1) {
+    if (i === nodes.length - 1)
+    {
       degrees[degrees.length - 1].categories = parseDegree(nodes.slice(end + 1));
       return true;
     }
     
-    if (categoryHeader(e)
-      && (containsText(e, 'Bachelor of ') || containsText(e, 'Major in '))) {
-      if (i > 1) {
+    if (categoryHeader(e) && (containsText(e, 'Bachelor of ') || containsText(e, 'Major in ')))
+    {
+      if (i > 1)
+      {
         end = i;
         degrees[degrees.length - 1].categories = parseDegree(nodes.slice(1, i));
       }
@@ -315,7 +317,7 @@ let parseCategory = ( nodes ) => {
       {
         matches.push({
           reqs: containsCourse(nodes[1].textContent)
-                ? parseCourseList(nodes[1]) : [ trimHtml(nodes[1].textContent) ],
+                ? parseCourseList(nodes[1]) : [ trimHtml(nodes[1].outerHTML) ],
           pre: trimHtml(nodes[0].textContent),
         });
         
@@ -402,17 +404,17 @@ let parseCourseListItem = ( li ) => {
   const html = trimHtml(li.innerHTML),
         text = trimHtml(li.textContent);
   
-  // example: ENGL 181 -> ["ENGL 181"]
+  // ENGL 181 -> ["ENGL 181"]
   if (isCourse(text))
     return [ text ];
   
-  // example: One course from COEN 161, 163, 164 -> [ ["COEN 161", "COEN 163", "COEN 164"] ]
-  if (/^One (.?)(from|course from)/.test(text) && containsCourse(text))
-    return parseExpression(text.substr(text.match(/\w{4} [0-9]{1,3}[ABCDE]?L?/).index), true);
-  
-  // example: AMTH 106 or MATH 22 -> [ ["AMTH 106", "MATH 22"] ]
+  // AMTH 106 or MATH 22 -> [ ["AMTH 106", "MATH 22"] ]
   if (startsWithCourse(text))
     return parseExpression(text);
+  
+  // One course from COEN 161, 163, 164 -> [ ["COEN 161", "COEN 163", "COEN 164"] ]
+  if (containsCourse(text) && /^One (.?)(from|course from)/.test(text))
+    return parseExpression(text.substr(text.match(/\w{4} [0-9]{1,3}[ABCDE]?L?/).index), true);
   
   // last resort: return raw HTML
   return html;
@@ -456,10 +458,8 @@ let parseExpression = ( text, forceOr = false ) => {
   }
   // try to match an AND expression first
   else if ((match = andExpression(text)) !== text)
-  {
     for (const split of match)
       matchExpression(split);
-  }
   // otherwise try to match an OR
   else if ((match = orExpression(text)) !== text)
   {
