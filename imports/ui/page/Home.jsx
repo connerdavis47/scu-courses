@@ -1,11 +1,12 @@
 import { withTracker } from 'meteor/react-meteor-data'
 import React, { Component, } from 'react'
 import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
+import update from 'immutability-helper'
 
 import Degrees from 'imports/api/degrees/Degrees'
 import Subheader from 'imports/ui/component/Subheader'
 import CourseBadge from 'imports/ui/component/CourseBadge';
-import ConstructionNotice from 'imports/ui/page/ConstructionNotice'
+import ConstructionNotice from 'imports/ui/component/ConstructionNotice'
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -21,8 +22,8 @@ class Home extends Component {
       formState: 'degree',
       form: {
         degree: { },
-        core: [ ],
-        major: [ ],
+        core: { },
+        major: { },
         finishing: { },
       },
   
@@ -74,8 +75,7 @@ class Home extends Component {
   }
   
   renderBtnProgress = ( formState, title ) => {
-    const active = this.state.formState === formState
-      ? 'degree-form-progress-active' : '';
+    const active = this.state.formState === formState ? 'degree-form-progress-active' : '';
     const completed = (!(typeof this.state.form[formState] === 'undefined') &&
       Object.values(this.state.form[formState]).length > 0)
         ? 'text-success' : 'text-light';
@@ -114,7 +114,7 @@ class Home extends Component {
                  id="inputTitle"
                  onChange={ this.handleInput }
                  defaultValue={ this.state.form.degree.title }>
-            { this.sortedDegrees().map((degree, i) =>
+            { this.getDegreesSorted().map(( degree, i) =>
               <option key={ i }
                       name={ degree.title }>
                 { degree.title }
@@ -233,19 +233,51 @@ class Home extends Component {
     if (Array.isArray(item))
       item = item.toString().replace(/[,]+/g, ' or ');
     
-    return item.includes('<') && item.includes('>') ? (
-      <div key={ key }
-           className="mt-3 text-muted"
-           dangerouslySetInnerHTML={{ __html: item }} />
-    ) : (
+    if (item.includes('<') && item.includes('>'))
+    {
+      return (
+        <div key={ key }
+             className="mt-3 text-muted"
+             dangerouslySetInnerHTML={{ __html: item }}>
+        </div>
+      )
+    }
+    
+    if (!this.startsWithCourse(item))
+    {
+      return (
+        <span key={ key }
+              className="badge-fill mb-2 pb-2 border-bottom text-muted">
+          { this.props.name }
+        </span>
+      )
+    }
+    
+    return (
       <CourseBadge key={ key }
                    name={ item }
-                   onChange={ this.handleInput } />
+                   onClick={ this.toggleCourse } />
     )
   };
   
+  toggleCourse = ( e ) => {
+    const text = e.target.textContent;
+    const options = [ 'badge-primary', 'badge-light' ];
+    options.forEach(color => e.target.classList.toggle(color));
+    const toggled = e.target.classList.contains('badge-primary');
+    
+    const state = update(this.state, {
+      form: {
+        major: {
+          [text]: { $set: toggled },
+        },
+      },
+    });
+    this.setState(state);
+  };
+  
   handleInput = ( e ) => {
-    let name = e.target.name;
+    const name = e.target.name;
     let value;
     
     switch (e.target.type) {
@@ -285,8 +317,9 @@ class Home extends Component {
     switch (state.formState) {
       case 'degree':
         state.formState = 'core';
+        
         if (typeof this.state.form.degree.title === 'undefined')
-          state.form.degree.title = this.sortedDegrees()[0].title;
+          state.form.degree.title = this.getDegreesSorted()[0].title;
         break;
       
       case 'core':
@@ -309,12 +342,16 @@ class Home extends Component {
     this.setState({ formState: to });
   };
   
-  sortedDegrees = ( ) => {
+  getDegreesSorted = ( ) => {
     return Object.values(this.props.degrees.filter(c => c.title !== 'Undergraduate Degrees'))
       .sort((a, b) => (a.title > b.title) ? 1 : ((b.title > a.title) ? -1 : 0));
   };
   
-  startsWithCourse = ( ) => /^\w{4} [0-9]{1,3}[ABCDE]?L?/.test(this.props.name);
+  getDegreeByName = ( name ) => {
+    return this.props.degrees.filter(d => d.title === name)[0].categories;
+  };
+  
+  startsWithCourse = ( text ) => /^\w{4} [0-9]{1,3}[ABCDEFG]?L?/.test(text);
   
 }
 
