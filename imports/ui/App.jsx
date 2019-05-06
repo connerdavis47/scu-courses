@@ -1,7 +1,7 @@
 import React from 'react'
 import { BrowserRouter as Router, Route, } from 'react-router-dom'
 
-import Header from 'imports/ui/component/Header'
+import NavBar from 'imports/ui/component/NavBar'
 import Home from 'imports/ui/page/Home'
 import Classes from 'imports/ui/page/Classes'
 import Schedules from 'imports/ui/page/Schedules'
@@ -22,7 +22,7 @@ const Routes = {
 const App = () => (
   <Router>
     <div>
-      <Header links={ Object.keys(Routes) } />
+      <NavBar links={ Object.keys(Routes) } />
       <section id="main-content">
         { Object.entries(Routes).map(([path, component], i) =>
           <Route key={ i } exact path={ `/${path}` } component={ component } />

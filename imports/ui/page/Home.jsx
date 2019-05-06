@@ -4,9 +4,9 @@ import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 import update from 'immutability-helper'
 
 import Degrees from 'imports/api/degrees/Degrees'
-import Subheader from 'imports/ui/component/Subheader'
+import Header from 'imports/ui/component/Header'
 import CourseBadge from 'imports/ui/component/CourseBadge';
-import ConstructionNotice from 'imports/ui/component/ConstructionNotice'
+import WarningBox from 'imports/ui/component/WarningBox'
 
 /**
  * Landing page, which prompts users for basic degree information the server
@@ -35,7 +35,7 @@ class Home extends Component {
     return (
       <section className="degree-form"
                id="degree-form">
-        <Subheader content="Tell us a little about yourself." />
+        <Header content="Tell us a little about yourself." />
         <div className="container mb-5">
           <Row>
             <Col sm="4">
@@ -133,7 +133,7 @@ class Home extends Component {
         <h4 className="font-weight-bolder mb-4">
           Core requirements
         </h4>
-        <ConstructionNotice/>
+        <WarningBox/>
         <p>Select the University Core classes you've already taken.</p>
         <div>
           { this.props.degrees.filter(d => d.title === 'Undergraduate Degrees')[0].categories.map((each, i) =>
@@ -161,10 +161,9 @@ class Home extends Component {
         <h4 className="font-weight-bolder mb-4">
           Major requirements
         </h4>
-        <ConstructionNotice/>
+        <WarningBox />
         <p>Select the classes you've already taken.</p>
         <div>
-          { console.log(this.state.form.degree.title) }
           { this.props.degrees.filter(d => d.title === this.state.form.degree.title)[0].categories.map((each, i) =>
             <div className="mb-4">
               <h5 key={ i }
