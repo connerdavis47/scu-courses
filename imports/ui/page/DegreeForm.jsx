@@ -49,14 +49,6 @@ class DegreeProgressForm extends React.Component
        */
       form: 'degree',
       
-      selected: {
-        
-        core: [],
-        
-        major: [],
-        
-      },
-    
       /**
        * The controlled formInputs state of all input fields found in each of the
        * corresponding formInputs sections.
@@ -88,7 +80,7 @@ class DegreeProgressForm extends React.Component
     };
     
     this.handleInput = this.handleInput.bind(this);
-    this.handleFormStateChange = this.handleFormStateChange.bind(this);
+    this.handleNextForm = this.handleNextForm.bind(this);
     this.handleToggleCourse = this.handleToggleCourse.bind(this);
   }
   
@@ -127,40 +119,51 @@ class DegreeProgressForm extends React.Component
     this.setState(state);
   }
   
-  handleFormStateChange( to = this.state.form )
+  handleSetForm( to )
+  {
+    const newState = update(this.state, {
+      form: { $set: to },
+    });
+    this.setState(newState);
+  }
+  
+  handleNextForm( )
   {
     let newState;
     
-    switch (to)
+    switch (this.state.form)
     {
       case 'degree':
-        
-        break;
-      
-      case 'core':
-        let title = this.state.formInputs.degree.title;
+        let title = this.state.formInputs['degree']['title'];
         if (typeof title === 'undefined')
           title = this.degreesSorted()[0].title;
+  
+        this.getDegreeButtons(title);
   
         newState = update(this.state, {
           form: { $set: 'core' },
           formInputs: {
-            core: { $set: this.degreeByTitle('Undergraduate Degrees') },
-            major: { $set: this.degreeByTitle(title) },
+            degree: {
+              title: { $set: { title }},
+            },
           },
         });
         break;
       
-      case 'major':
+      case 'core':
         newState = update(this.state, {
           form: { $set: 'major' },
         });
         break;
       
-      case 'finishing':
+      case 'major':
         newState = update(this.state, {
           form: { $set: 'finishing' },
         });
+        break;
+      
+      case 'finishing':
+        console.log('done');
         break;
     }
     
@@ -172,11 +175,13 @@ class DegreeProgressForm extends React.Component
     const text = e.target.textContent;
     const options = [ 'badge-primary', 'badge-light' ];
     options.forEach(color => e.target.classList.toggle(color));
-  
+    
     const state = update(this.state, {
-      selected: {
-        [this.state.form]: { $push: [ text ] },
-      },
+      formInputs: {
+        [this.state.form]: {
+          [text]: { $set: e.target.classList.contains('badge-primary') },
+        },
+      }
     });
     this.setState(state);
   }
@@ -193,6 +198,21 @@ class DegreeProgressForm extends React.Component
   getDegreeByName( name )
   {
     return this.props.degrees.filter(d => d.title === name)[0].categories;
+  }
+  
+  getDegreeButtons( name )
+  {
+    let btns = [];
+    
+    this.getDegreeByName(name).map(c => {
+      Object.values(c).map(req => {
+        if (startsWithCourse(req.toString()))
+          btns.push(req);
+      });
+    });
+    
+    btns = btns.flat();
+    console.log(btns);
   }
   
   renderDegreeCategories( degreeTitle )
@@ -268,8 +288,7 @@ class DegreeProgressForm extends React.Component
       );
     
     // finally, draw the course (or list of courses) as clickable CourseBadge
-    const toggled = this.state.selected[this.state.form].includes(req);
-    console.log(req);
+    const toggled = this.state.formInputs[this.state.form][req];
     return (
       <CourseBadge
         name={ req }
@@ -287,7 +306,7 @@ class DegreeProgressForm extends React.Component
   renderBtnContinue( )
   {
     return (
-      <Button outline color="success" onClick={ this.handleFormStateChange }>
+      <Button outline color="success" onClick={ this.handleNextForm }>
         { this.state.form.startsWith('finishing') ? 'Get schedules' : 'Continue' }
         <i className="fas fa-arrow-right pl-2" />
       </Button>
@@ -305,13 +324,13 @@ class DegreeProgressForm extends React.Component
    */
   renderBtnProgress( form, title )
   {
-    const active = this.state.form === form ? 'degree-formInputs-progress-active' : '';
-    const completed = typeof form !== 'undefined' && Object.values(this.state.formInputs[form]).length > 0;
+    const active = this.state.form === form ? 'degree-form-progress-active' : '';
+    let completed = typeof form !== 'undefined' && Object.values(this.state.formInputs[form]).length > 0;
     
     return (
       <li
         className={ `${active} border-bottom border-secondary p-4` }
-        onClick={ () => this.handleFormStateChange(form) }
+        onClick={ () => this.handleSetForm(form) }
       >
         { title }
         <i className={ `fas fa-check-circle text-success text-${completed ? 'success' : 'light'}` } />
@@ -379,7 +398,7 @@ class DegreeProgressForm extends React.Component
         <p>
           Select the classes you've already taken in your major.
         </p>
-        { this.renderDegreeCategories(this.state.formInputs['degree']['title']) }
+        { this.renderDegreeCategories(Object.values(this.state.formInputs['degree']['title'])[0]) }
         { this.renderBtnContinue() }
       </div>
     )
@@ -446,8 +465,6 @@ export default withTracker(props => {
   
   return {
     degreesLoading: !handle.ready(),
-    degrees: Object
-      .values(Degrees.find({}).fetch())
-      .sort((a, b) => (a.title > b.title) ? 1 : ((b.title > a.title) ? -1 : 0)),
+    degrees: Degrees.find({}).fetch(),
   };
 })(DegreeProgressForm);
