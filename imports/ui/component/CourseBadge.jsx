@@ -1,5 +1,6 @@
 import React from 'react'
 import { Badge, } from 'reactstrap'
+import update from 'immutability-helper/index'
 
 /**
  * A clickable Bootstrap Badge for one course requirement at SCU. These are used
@@ -8,6 +9,20 @@ import { Badge, } from 'reactstrap'
  */
 export default class CourseBadge extends React.Component
 {
+  
+  /**
+   * Compares some text to the regular expression for a course title at SCU.
+   * Courses are denoted by a four-letter department code, a space, a one-to-three
+   * digit course number, an optional suffix in (A, B, C, D, E, F, G), and an
+   * optional suffix of L.
+   *
+   * @param text - The text to scan
+   * @returns {boolean} - True if the text matches the regular expression
+   */
+  static isCourse( text )
+  {
+    return /^\w{4} [0-9]{1,3}[ABCDEFG]?L?$/.test(text);
+  }
   
   constructor( props )
   {
@@ -21,23 +36,13 @@ export default class CourseBadge extends React.Component
     
     return (
       <Badge
-        color="light"
+        color={ this.props.color }
         className={ `m-1 p-3 border-bottom ${isOneCourse ? '' : 'badge-fill'}` }
-        onClick={ this.props.onClick }>
+        onClick={ this.props.onClick }
+      >
         { this.props.name }
       </Badge>
     )
   }
-  
-  /**
-   * Compares some text to the regular expression for a course title at SCU.
-   * Courses are denoted by a four-letter department code, a space, a one-to-three
-   * digit course number, an optional suffix in (A, B, C, D, E, F, G), and an
-   * optional suffix of L.
-   *
-   * @param text - The text to scan
-   * @returns {boolean} - True if the text matches the regular expression
-   */
-  static isCourse = ( text ) => /^\w{4} [0-9]{1,3}[ABCDE]?L?$/.test(text);
   
 }

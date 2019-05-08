@@ -88,7 +88,8 @@ let scrape = ( ) => {
           {
             for (const d of degrees)
             {
-              console.log(`scrape.js#scrapeAll(): emitted -> ${d.title}, test passed -> (${compare(d)})`);
+              console.log(`scrape.js#scrapeAll(): emitted -> ${d.title}`);
+              //console.log(`scrape.js#scrapeAll(): emitted -> ${d.title}, test passed -> (${compare(d)})`);
               Degrees.insert(d);
             }
           }

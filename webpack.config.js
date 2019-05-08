@@ -27,11 +27,23 @@ const clientConfig = {
   module: {
     rules: [
       {
+        enforce: 'pre',
+        // load .js(x) files with Babel to interpret ES6(React) code
+        test: /\.(js|jsx)$/,
+        exclude: /node_modules/,
+        loader: 'eslint-loader',
+        
+        options: {
+          // force Webpack to find babel.config.js, will not compile otherwise
+          rootMode: 'upward',
+        },
+      },
+      {
         // load .js(x) files with Babel to interpret ES6(React) code
         test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
-        
+    
         options: {
           // force Webpack to find babel.config.js, will not compile otherwise
           rootMode: 'upward',

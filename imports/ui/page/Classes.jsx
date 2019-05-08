@@ -1,5 +1,6 @@
-import React, { Component, } from 'react'
+import React from 'react'
 import { Button, Form, InputGroup, InputGroupAddon, Input, } from 'reactstrap'
+import shortid from 'shortid'
 
 import Course from 'imports/ui/component/Course'
 
@@ -7,47 +8,48 @@ import Course from 'imports/ui/component/Course'
  * A page that lets students search for classes that are currently available and
  * manually assemble a schedule.
  */
-class Classes extends Component {
+export default class Classes extends React.Component
+{
   
-  constructor( props ) {
+  constructor( props )
+  {
     super(props);
     
     this.state = {
+      
       results: undefined,
+      
       form: {
         q: '',
-      }
+      },
+      
     }
   }
   
-  render( ) {
+  render( )
+  {
     return (
       <div>
         <h1>Classes</h1>
         { this.renderSearchForm() }
         <div className="border my-4 p-4">
           <ul className="m-0 p-0">
-            { this.state.results &&
-              this.state.results }
+            { this.state.results && this.state.results }
           </ul>
         </div>
       </div>
     )
   }
   
-  renderSearchForm = ( ) => {
+  renderSearchForm( )
+  {
     return (
-      <Form className="my-4"
-            onSubmit={ this.search }>
+      <Form className="my-4" onSubmit={ this.search }>
         <InputGroup>
-          <Input type="text"
-                 id="formQ"
-                 name="q"
-                 onChange={ this.changeHandler } />
+          <Input type="text" name="q" onChange={ this.changeHandler } />
           <InputGroupAddon addonType="append">
-            <Button color="primary"
-                    onClick={ this.search }>
-              <i className="fas fa-search"> </i>
+            <Button color="primary" onClick={ this.search }>
+              <i className="fas fa-search" />
             </Button>
           </InputGroupAddon>
         </InputGroup>
@@ -55,36 +57,39 @@ class Classes extends Component {
     )
   };
   
-  changeHandler = ( event ) => {
+  changeHandler( event )
+  {
     this.setState({
-      form: {
+      formInputs: {
         [event.target.name]: event.target.value,
       },
     });
-  };
+  }
   
-  search = async( event )  => {
+  search( event )
+  {
     event.preventDefault();
     
-    let res = await new Promise((resolve, reject) => {
-      Meteor.call('api.search', { q: this.state.form.q, }, (err, res) => {
-        if (err) return reject(err);
-        resolve(res);
-      });
+    return new Promise((resolve, reject) => {
+      Meteor.call(
+        'api.search',
+        { q: this.state.formInputs.q, },
+        function( err, res )
+        {
+          if (err)
+            return reject(err);
+  
+          console.log(res);
+          this.setState({
+            results: res.map(course => (
+              <Course key={ shortid.generate() } data={ course } />
+            )),
+          })
+        }
+      );
       
       return resolve;
     }).catch(err => console.warn(err));
-    console.log(res);
-    
-    this.setState({
-      results: res.map((course, i) => (
-        <Course
-          key={ i }
-          data={ course }
-        />
-      )),
-    })
-  };
+  }
   
 }
-export default Classes
