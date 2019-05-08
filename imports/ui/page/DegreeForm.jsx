@@ -138,14 +138,40 @@ class DegreeProgressForm extends React.Component
         if (typeof title === 'undefined')
           title = this.degreesSorted()[0].title;
   
-        this.getDegreeButtons(title);
+        let classes = [ ];
+        this.getDegreeByName(title).map(c => {
+          for (const req of c.reqs)
+          {
+            if (Array.isArray(req)) {
+              for (const r of req)
+                classes.push(r);
+            }
+            else if (typeof req === 'object' && typeof req.reqs !== 'undefined') {
+              for (const r of req.reqs) {
+                if (Array.isArray(r)) {
+                  for (const _r of r)
+                    classes.push(_r);
+                }
+                else if (typeof r === 'string' && startsWithCourse(req))
+                  classes.push(r);
+              }
+            }
+            else if (typeof req === 'string' && startsWithCourse(req))
+              classes.push(req);
+          }
+        });
+        
+        let classesObjects = { };
+        for (const c of classes)
+          classesObjects[c] = false;
   
         newState = update(this.state, {
           form: { $set: 'core' },
           formInputs: {
             degree: {
-              title: { $set: { title }},
+              $set: { title: title },
             },
+            major: { $set: classesObjects },
           },
         });
         break;
@@ -163,7 +189,22 @@ class DegreeProgressForm extends React.Component
         break;
       
       case 'finishing':
-        console.log('done');
+        const result = new Promise((resolve, reject) => {
+          Meteor.call(
+            'suggest-schedules',
+            {
+              degreeTitle: this.state.formInputs.degree['title'],
+              satisfied: this.state.formInputs['major'],
+            },
+            function( err, res )
+            {
+              if (err)
+                return reject(err);
+            }
+          );
+    
+          return resolve;
+        }).catch(err => console.warn(err));
         break;
     }
     
@@ -172,14 +213,26 @@ class DegreeProgressForm extends React.Component
   
   handleToggleCourse( e )
   {
-    const text = e.target.textContent;
+    let text = e.target.textContent;
     const options = [ 'badge-primary', 'badge-light' ];
     options.forEach(color => e.target.classList.toggle(color));
+  
+    let reqs = Object.assign({}, this.state.formInputs[this.state.form]);
+    reqs[text] = e.target.classList.contains('badge-primary');
+    
+    if (text.includes(' or '))
+    {
+      text = text.split(' or ');
+      for (const it of text)
+      {
+        reqs[it] = e.target.classList.contains('badge-primary');
+      }
+    }
     
     const state = update(this.state, {
       formInputs: {
         [this.state.form]: {
-          [text]: { $set: e.target.classList.contains('badge-primary') },
+          $set: reqs
         },
       }
     });
@@ -198,21 +251,6 @@ class DegreeProgressForm extends React.Component
   getDegreeByName( name )
   {
     return this.props.degrees.filter(d => d.title === name)[0].categories;
-  }
-  
-  getDegreeButtons( name )
-  {
-    let btns = [];
-    
-    this.getDegreeByName(name).map(c => {
-      Object.values(c).map(req => {
-        if (startsWithCourse(req.toString()))
-          btns.push(req);
-      });
-    });
-    
-    btns = btns.flat();
-    console.log(btns);
   }
   
   renderDegreeCategories( degreeTitle )
@@ -398,7 +436,7 @@ class DegreeProgressForm extends React.Component
         <p>
           Select the classes you've already taken in your major.
         </p>
-        { this.renderDegreeCategories(Object.values(this.state.formInputs['degree']['title'])[0]) }
+        { this.renderDegreeCategories(this.state.formInputs['degree']['title']) }
         { this.renderBtnContinue() }
       </div>
     )
