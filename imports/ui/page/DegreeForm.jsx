@@ -470,6 +470,8 @@ class DegreeProgressForm extends React.Component
               <div className="schedule-box px-3 text-center border-right border-secondary">
                 { schedule && schedule.map(course => (
                   <p className="mb-0">
+                    <small>{ course.class_nbr }</small>
+                    <br />
                     <strong>{ course.subject } { course.catalog_nbr }</strong>
                     <br />
                     { course.mtg_time_beg_1 }
