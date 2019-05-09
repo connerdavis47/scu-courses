@@ -227,12 +227,8 @@ class DegreeProgressForm extends React.Component
     let reqs = Object.assign({}, this.state.formInputs[this.state.form]);
     if (text.includes(' or '))
     {
-      text = text.split(' or ');
-      console.log(text);
-      for (const it of text)
-      {
+      for (const it of text.split(' or '))
         reqs[it] = toggled;
-      }
     }
     else
       reqs[text] = toggled;
@@ -334,7 +330,12 @@ class DegreeProgressForm extends React.Component
       );
     
     // finally, draw the course (or list of courses) as clickable CourseBadge
-    const toggled = this.state.formInputs[this.state.form][req];
+    let toggled;
+    if (req.includes(' or '))
+      toggled = this.state.formInputs[this.state.form][req.substring(0, req.indexOf(' or '))];
+    else
+      toggled = this.state.formInputs[this.state.form][req];
+    
     return (
       <CourseBadge
         name={ req }
