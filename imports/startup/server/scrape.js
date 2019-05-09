@@ -11,7 +11,7 @@ import { compare } from 'imports/startup/server/scrape.tests'
  */
 const RemotePages = [
   
-  /*{
+  {
     chapter: 'chapter-3',
     pages: [
       'UndergraduateDegrees',
@@ -54,7 +54,7 @@ const RemotePages = [
       'Marketing',
       'OperationsManagementandInformationSystems',
     ],
-  },*/
+  },
   {
     chapter: 'chapter-5',
     pages: [

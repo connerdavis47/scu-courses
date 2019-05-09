@@ -49,6 +49,8 @@ class DegreeProgressForm extends React.Component
        */
       form: 'degree',
       
+      results: [ ],
+      
       /**
        * The controlled formInputs state of all input fields found in each of the
        * corresponding formInputs sections.
@@ -189,22 +191,19 @@ class DegreeProgressForm extends React.Component
         break;
       
       case 'finishing':
-        const result = new Promise((resolve, reject) => {
-          Meteor.call(
-            'suggest-schedules',
-            {
-              degreeTitle: this.state.formInputs.degree['title'],
-              satisfied: this.state.formInputs['major'],
-            },
-            function( err, res )
-            {
-              if (err)
-                return reject(err);
-            }
-          );
-    
-          return resolve;
-        }).catch(err => console.warn(err));
+        Meteor.call(
+          'suggestSchedules',
+          this.state.formInputs.degree['title'],
+          this.state.formInputs['major'],
+          ( err, res ) => {
+            if (err) return reject(err);
+            
+            console.log(res);
+            this.setState({
+              results: res,
+            });
+          }
+        );
         break;
     }
     
@@ -451,7 +450,9 @@ class DegreeProgressForm extends React.Component
         </h4>
         <p>See if you would like to try any of these extra restrictions.</p>
         <div>
-          ...
+          { this.state.results && this.state.results.map(course => (
+            <p>{ course.subject } { course.catalog_nbr } - { course.mtg_time_beg_1 }</p>
+          )) }
         </div>
         { this.renderBtnContinue() }
       </div>

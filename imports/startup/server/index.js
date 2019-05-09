@@ -19,7 +19,7 @@ async function getDetails( course )
 {
   return await Promise.resolve(rp({
     method: 'GET',
-    uri: `${scuApiRoot}/details/4040/ugrad/${result}`,
+    uri: `${scuApiRoot}/details/4100/ugrad/${result}`,
     json: true,
   }));
 }
@@ -28,7 +28,7 @@ async function getSearch( query )
 {
   let sections = await rp({
     method: 'POST',
-    uri: `${scuApiRoot}/search/4040/ugrad`,
+    uri: `${scuApiRoot}/search/4100/ugrad`,
     formData: {
       q: query,
       maxRes: 5,
@@ -59,14 +59,13 @@ async function collectSections( courses )
 
 Meteor.methods({
   
-  'suggest-schedules'({ degreeTitle: degreeTitle, satisfied: satisfied, })
+  async suggestSchedules( degreeTitle, satisfied )
   {
-    const degree = Degrees.find({ title: degreeTitle }).fetch()[0];
+    const degree = Degrees.find({title: degreeTitle}).fetch()[0];
   
-    let classes = [ ];
+    let classes = [];
     degree.categories.map(c => {
-      for (const req of c.reqs)
-      {
+      for (const req of c.reqs) {
         if (Array.isArray(req)) {
           for (const r of req)
             classes.push(r);
@@ -88,10 +87,7 @@ Meteor.methods({
     classes = classes.flatten();
     
     const remaining = classes.filter(x => !satisfied[x]);
-    collectSections(remaining).then(message => {
-      for (const course of message)
-        console.log(course['subject'] + ' ' + course['catalog_nbr']);
-    });
+    return await collectSections(remaining);
   }
   
 });
