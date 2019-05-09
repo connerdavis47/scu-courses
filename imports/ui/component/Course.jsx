@@ -1,4 +1,4 @@
-import React, { Component, } from 'react'
+import React from 'react'
 import { Badge, InputGroup, InputGroupAddon, } from 'reactstrap'
 
 /**
@@ -8,22 +8,28 @@ import { Badge, InputGroup, InputGroupAddon, } from 'reactstrap'
  * @param data  The course data obtained via JSON request by the server.
  * @param key   The key used to uniquely identify this course in a list.
  */
-class Course extends Component {
+export default class Course extends React.Component
+{
   
-  constructor( props ) {
+  constructor( props )
+  {
     super(props);
     
     this.state = {
+      
       expanded: false,
+      
     };
   }
   
-  render( ) {
+  render( )
+  {
     return (
-      <li className={ `classes-course mb-2
-            ${this.state.expanded && 'classes-course-expanded'} `}
-          key={ this.props.key }
-          onClick={ () => { this.expandCollapse() } }>
+      <li
+        className={ `classes-course mb-2 ${this.state.expanded && 'classes-course-expanded'} `}
+        key={ this.props.key }
+        onClick={ () => { this.expandCollapse() } }
+      >
         <div>
           <InputGroup className="align-items-center">
             <InputGroupAddon addonType="prepend">
@@ -39,37 +45,39 @@ class Course extends Component {
               { this.renderActions() }
             </InputGroupAddon>
           </InputGroup>
-          { this.state.expanded &&
-            this.renderExpanded()
-          }
+          { this.state.expanded && this.renderExpanded() }
         </div>
       </li>
     )
   }
   
-  expandCollapse = ( ) => {
+  expandCollapse( )
+  {
     this.setState({ expanded: !this.state.expanded, });
-  };
+  }
   
-  renderExpanded = ( ) => {
+  renderExpanded( )
+  {
     return (
       <div className="py-3">
         <p>Room: { this.props.data.mtg_facility_1 }<br />
           Instructor: { this.props.data.instr_1 }.</p>
       </div>
     )
-  };
+  }
   
-  renderNbr = ( ) => {
+  renderNbr( )
+  {
     return (
       <Badge color="primary"
              className="px-2 py-3 font-weight-light">
         { this.props.data.class_nbr }
       </Badge>
     )
-  };
+  }
   
-  renderName = ( ) => {
+  renderName( )
+  {
     return (
       <Badge color="light"
              className="py-3 font-weight-light">
@@ -78,41 +86,43 @@ class Course extends Component {
     )
   };
   
-  renderDesc = ( ) => {
+  renderDesc( )
+  {
     return (
       <div>
         { this.props.data.class_descr }
       </div>
     )
-  };
+  }
   
-  renderTime = ( ) => {
+  renderTime( )
+  {
     return (
       <div>
         { this.props.data.mtg_days_1 } { this.props.data.mtg_time_beg_1 } -
         { this.props.data.mtg_time_end_1 }
       </div>
     )
-  };
+  }
   
-  renderSeats = ( ) => {
+  renderSeats( )
+  {
     return (
       <div className="classes-course-seats d-flex align-items-center justify-content-center text-warning">
         <i className="fas fa-chair"> </i>
         <span className="pl-1">{ this.props.data.seats_remaining }</span>
       </div>
     )
-  };
+  }
   
-  renderActions = ( ) => {
+  renderActions( )
+  {
     return (
       <div className="d-flex align-items-center mx-3">
         <i className="fas fa-plus text-success p-1"> </i>
         <i className="fas fa-minus text-danger ml-1 p-1"> </i>
       </div>
     )
-  };
+  }
   
 }
-
-export default Course;

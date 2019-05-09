@@ -1,13 +1,13 @@
-@import '../assets/brand.scu.css';
+@import 'bootstrap.scss';
 
 /* Global */
 
-$brand-primary: #b30738;
-$brand-danger: #dc3545;
-$brand-success: #28a745;
-
-h1,h2,h3,h4,h5,h6 {
+h1,h2,h3,h4,h5,h6,p,em,strong {
   font-family: 'Arial', sans-serif;
+}
+
+em {
+  font-style: italic;
 }
 
 .border-bottom-thicker {
@@ -16,10 +16,6 @@ h1,h2,h3,h4,h5,h6 {
 
 .border-secondary {
   border-color: rgba(108, 117, 125, .2) !important;
-}
-
-.construction-notice {
-  border: 2px solid #ffe8d3;
 }
 
 /* Header.jsx */
@@ -33,10 +29,10 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .bg-primary-less {
-  background-color: darken($brand-primary, 2%);
+  background-color: darken($primary, 2%);
 }
 
-/* Home.jsx */
+/* DegreeFormeeForm.jsx */
 
 .degree-form {
 
@@ -61,8 +57,12 @@ h1,h2,h3,h4,h5,h6 {
     overflow-wrap: break-word;
     white-space: inherit;
 
+    &.text-muted {
+      cursor: default;
+    }
+
     &:hover {
-      box-shadow: 0 0 1px $brand-primary;
+      box-shadow: 0 0 1px $primary;
     }
   }
 
@@ -136,12 +136,12 @@ h1,h2,h3,h4,h5,h6 {
 
   /* btn add to schedule */
   .text-success:hover {
-    color: lighten($brand-success, 10%);
+    color: lighten($success, 10%);
   }
 
   /* btn remove from schedule */
   .text-danger:hover {
-    color: lighten($brand-danger, 10%);
+    color: lighten($danger, 10%);
   }
 
   &:hover {
@@ -149,7 +149,7 @@ h1,h2,h3,h4,h5,h6 {
     cursor: pointer;
 
     .badge-primary {
-      background-color: lighten($brand-primary, 5%);
+      background-color: lighten($primary, 5%);
     }
 
     .badge-light {
@@ -160,6 +160,6 @@ h1,h2,h3,h4,h5,h6 {
 
 .classes-course-expanded {
   background-color: lighten(#dee2e6, 8%);
-  border-left: .15rem solid $brand-primary;
+  border-left: .15rem solid $primary;
   padding: .5rem 0 0 .5rem;
 }
