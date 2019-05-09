@@ -203,7 +203,11 @@ class DegreeProgressForm extends React.Component
           this.state.formInputs.degree['title'],
           this.state.formInputs['major'],
           ( err, res ) => {
-            if (err) return reject(err);
+            if (err)
+            {
+              console.log(err);
+              return;
+            }
             
             console.log(res);
             this.setState({
@@ -460,10 +464,22 @@ class DegreeProgressForm extends React.Component
           Finishing touches
         </h4>
         <p>See if you would like to try any of these extra restrictions.</p>
-        <div>
-          { this.state.results && this.state.results.map(course => (
-            <p>{ course.subject } { course.catalog_nbr } - { course.mtg_time_beg_1 }</p>
-          )) }
+        <div className="schedules-container d-flex flex-row flex-nowrap mb-4">
+          { this.state.results && this.state.results.map(schedule => {
+            return (
+              <div className="schedule-box px-3 text-center border-right border-secondary">
+                { schedule && schedule.map(course => (
+                  <p className="mb-0">
+                    <small>{ course.class_nbr }</small>
+                    <br />
+                    <strong>{ course.subject } { course.catalog_nbr }</strong>
+                    <br />
+                    { course.mtg_time_beg_1 }
+                  </p>
+                )) }
+              </div>
+            )
+          }) }
         </div>
         { this.renderBtnContinue() }
       </div>

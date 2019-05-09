@@ -61,7 +61,6 @@ Meteor.methods({
   
   async suggestSchedules( degreeTitle, satisfied )
   {
-    console.log(JSON.stringify(satisfied, null, 1));
     const degree = Degrees.find({title: degreeTitle}).fetch()[0];
   
     let classes = [];
@@ -88,10 +87,87 @@ Meteor.methods({
     classes = classes.flatten();
     
     const remaining = classes.filter(x => !satisfied[x]);
-    return await collectSections(remaining);
+    let sections = await collectSections(remaining);
+  
+    let schedules = [ ];
+  
+    /**
+     * Generate 10 possible schedules provided list of all available sections.
+     *
+     * while schedules < 10:
+     *   sched = [ ]
+     *   for s of sections
+     *     if units >= 18: break
+     *     if title not in sched:
+     *       sched add s
+     */
+  
+    while (schedules.length < 50)
+    {
+      let sched = [ ];
+      let units = 0;
+  
+      sections = shuffleArray(sections);
+      for (let i = 0; i < sections.length; ++i)
+      {
+        if (!includesCourse(sched, sections[i])
+          && !includesMeetingTime(sched, sections[i])
+          && !sections[i]['catalog_nbr'].includes('L'))
+        {
+          if (sections[i]['units_minimum'] !== 'N/A')
+            units += parseInt(sections[i]['units_minimum']);
+          sched.push(sections[i]);
+        }
+        if (units >= 16.00) break;
+      }
+      
+      sched.sort((a, b) => {
+        a = parseInt(a.mtg_time_beg_hr_1);
+        b = parseInt(b.mtg_time_beg_hr_1);
+        
+        return (a > b) ? 1 : ((b > a) ? -1 : 0);
+      });
+      schedules.push(sched);
+    }
+    
+    return schedules;
   }
   
 });
+
+function shuffleArray( arr )
+{
+  for (let i = arr.length - 1; i > 0; --i)
+  {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  
+  return arr;
+}
+
+function includesCourse( schedule, it )
+{
+  const subj = it['subject'];
+  const num = it['catalog_nbr'];
+  
+  for (const course of schedule)
+    if (course['subject'] === subj && course['catalog_nbr'] === num)
+      return true;
+  
+  return false;
+}
+
+function includesMeetingTime( schedule, it )
+{
+  const mtgTime = it['mtg_time_beg_1'];
+  
+  for (const course of schedule)
+    if (course['mtg_time_beg_1'] === mtgTime)
+      return true;
+  
+  return false;
+}
 
 if (Meteor.isServer) {
   Meteor.startup(() => {
