@@ -18,13 +18,15 @@ import CourseBadge from 'imports/ui/component/CourseBadge'
  *  also permit "OR" course options.
  * @public
  */
-function startsWithCourse( text )
-{
-  return /^\w{4} [0-9]{1,3}[ABCDEFG]?L?/.test(text);
-}
+
 
 class DegreeProgressForm extends React.Component
 {
+  
+  startsWithCourse( text )
+  {
+    return /^\w{4} [0-9]{1,3}[ABCDEFG]?L?/.test(text);
+  }
   
   degreeByTitle( name )
   {
@@ -141,24 +143,29 @@ class DegreeProgressForm extends React.Component
           title = this.degreesSorted()[0].title;
   
         let classes = [ ];
+        console.log(this.getDegreeByName(title));
         this.getDegreeByName(title).map(c => {
           for (const req of c.reqs)
           {
-            if (Array.isArray(req)) {
+            if (Array.isArray(req))
+            {
               for (const r of req)
                 classes.push(r);
             }
-            else if (typeof req === 'object' && typeof req.reqs !== 'undefined') {
-              for (const r of req.reqs) {
-                if (Array.isArray(r)) {
+            else if (typeof req === 'object' && typeof req.reqs !== 'undefined')
+            {
+              for (const r of req.reqs)
+              {
+                if (Array.isArray(r))
+                {
                   for (const _r of r)
                     classes.push(_r);
                 }
-                else if (typeof r === 'string' && startsWithCourse(req))
+                else if (this.startsWithCourse(r))
                   classes.push(r);
               }
             }
-            else if (typeof req === 'string' && startsWithCourse(req))
+            else if (this.startsWithCourse(req))
               classes.push(req);
           }
         });
@@ -215,19 +222,21 @@ class DegreeProgressForm extends React.Component
     let text = e.target.textContent;
     const options = [ 'badge-primary', 'badge-light' ];
     options.forEach(color => e.target.classList.toggle(color));
+    const toggled = e.target.classList.contains('badge-primary');
   
     let reqs = Object.assign({}, this.state.formInputs[this.state.form]);
-    reqs[text] = e.target.classList.contains('badge-primary');
-    
     if (text.includes(' or '))
     {
       text = text.split(' or ');
+      console.log(text);
       for (const it of text)
       {
-        reqs[it] = e.target.classList.contains('badge-primary');
+        reqs[it] = toggled;
       }
     }
-    
+    else
+      reqs[text] = toggled;
+  
     const state = update(this.state, {
       formInputs: {
         [this.state.form]: {
@@ -314,7 +323,7 @@ class DegreeProgressForm extends React.Component
       );
     
     // draw requirements that were not parsed as un-clickable text lines
-    if (!startsWithCourse(req))
+    if (!this.startsWithCourse(req))
       return (
         <span
           className="badge-fill mb-2 pb-2 border-bottom text-muted"
@@ -362,7 +371,8 @@ class DegreeProgressForm extends React.Component
   renderBtnProgress( form, title )
   {
     const active = this.state.form === form ? 'degree-form-progress-active' : '';
-    let completed = typeof form !== 'undefined' && Object.values(this.state.formInputs[form]).length > 0;
+    const  completed = typeof this.state.formInputs[form] !== 'undefined'
+                        && Object.values(this.state.formInputs[form]).length > 0;
     
     return (
       <li

@@ -61,6 +61,7 @@ Meteor.methods({
   
   async suggestSchedules( degreeTitle, satisfied )
   {
+    console.log(JSON.stringify(satisfied, null, 1));
     const degree = Degrees.find({title: degreeTitle}).fetch()[0];
   
     let classes = [];
@@ -76,11 +77,11 @@ Meteor.methods({
               for (const _r of r)
                 classes.push(_r);
             }
-            else if (typeof r === 'string' && startsWithCourse(req))
+            else if (startsWithCourse(r))
               classes.push(r);
           }
         }
-        else if (typeof req === 'string' && startsWithCourse(req))
+        else if (startsWithCourse(req))
           classes.push(req);
       }
     });
