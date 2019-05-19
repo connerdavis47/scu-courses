@@ -4,7 +4,7 @@ import React from 'react'
 import { Button, Col, Form, Label, Input, Row, } from 'reactstrap'
 import shortid from 'shortid'
 
-import Degrees from 'imports/api/degrees/Degrees'
+import Degrees from 'imports/api/degrees/degrees'
 import Header from 'imports/ui/component/Header'
 import WarningBox from 'imports/ui/component/WarningBox'
 import CourseBadge from 'imports/ui/component/CourseBadge'
