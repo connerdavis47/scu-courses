@@ -1,12 +1,20 @@
-import { Meteor } from 'meteor/meteor';
-import React from 'react';
-import { render } from 'react-dom';
+/*
+   This file serves as the entry point for Webpack, so any static CSS files must
+   be imported in addition to the Sass and React root files, courses.scss
+   and App.jsx.
+ */
 
-import { renderRoutes } from '/imports/startup/client/routes';
+import { Meteor } from 'meteor/meteor'
+import React from 'react'
+import { render } from 'react-dom'
+
+import 'client/scss/courses.scss'
+import App from 'imports/ui/App'
 
 Meteor.startup(() => {
-  // define language on <html> as standard in WCAG 2.0, Guideline 3.1.1
-  document.documentElement.setAttribute('lang', 'en-US');
+  render(<App />, document.getElementById('root'));
   
-  render(renderRoutes(), document.getElementById('app'));
+  // accessibility: set <html lang="">
+  document.documentElement.lang = 'en-US';
+  
 });

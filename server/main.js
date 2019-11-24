@@ -1,5 +1,6 @@
-import { Meteor } from 'meteor/meteor';
+/*
+  The purpose of this file is to import all files that should be run on the
+  server. In other words, none of the client files.
+ */
 
-Meteor.startup(() => {
-  // code to run on server at startup
-});
+import 'imports/startup/server/index'
