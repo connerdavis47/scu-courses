@@ -1,23 +1,51 @@
 {
   "name": "scu-courses",
-  "private": true,
+  "version": "1.0.0",
+  "description": "A web app that suggests class schedules to students at Santa Clara University using their degree progress.",
+  "homepage": "https://github.com/connergdavis/scu-courses",
+  "bugs": {
+    "url": "https://github.com/connergdavis/scu-courses/issues",
+    "email": "connergdavis@gmail.com"
+  },
+  "license": "GPL-3.0-or-later",
+  "author": "Conner Davis <connergdavis@gmail.com> (https://cdavis.xyz)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/connergdavis/scu-courses"
+  },
   "scripts": {
+    "deploy": "if [ ! -d '../deployments/' ]; mkdir ../deployments/; fi && meteor build ../deployments/ --server-only --architecture os.linux.x86_64",
     "start": "meteor run",
     "test": "meteor test --once --driver-package meteortesting:mocha",
     "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
     "visualize": "meteor --production --extra-packages bundle-visualizer"
   },
+
   "dependencies": {
     "@babel/runtime": "^7.6.0",
+    "@types/meteor": "^1.4.36",
+    "@types/mocha": "^5.2.7",
+    "@types/react": "^16.9.13",
+    "@types/react-dom": "^16.9.4",
+    "css-loader": "^3.2.0",
     "meteor-node-stubs": "^1.0.0",
+    "node-sass": "^4.13.0",
     "react": "^16.9.0",
-    "react-dom": "^16.9.0"
+    "react-dom": "^16.9.0",
+    "sass-loader": "^8.0.0",
+    "style-loader": "^1.0.0",
+    "ts-loader": "^6.2.1",
+    "typescript": "^3.7.2",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
   },
+  "devDependencies": {},
   "meteor": {
     "mainModule": {
-      "client": "client/main.jsx",
-      "server": "server/main.js"
+      "client": "client/main.tsx",
+      "server": "server/main.ts"
     },
-    "testModule": "tests/main.js"
+    "testModule": "tests/main.ts"
   }
 }
