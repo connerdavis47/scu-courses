@@ -84,8 +84,7 @@ Meteor.methods({
           classes.push(req);
       }
     });
-    classes = classes.flatten();
-    
+
     const remaining = classes.filter(x => !satisfied[x]);
     let sections = await collectSections(remaining);
   

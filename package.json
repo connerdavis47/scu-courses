@@ -10,8 +10,7 @@
     "private": true,
     "repository": "connergdavis/scu-courses",
     "scripts": {
-        "start": "meteor run",
-        "docs": "jsdoc ./client ./import ./server -r -d doc"
+        "start": "meteor run"
     },
     "dependencies": {
         "@babel/runtime": "^7.7.4",
