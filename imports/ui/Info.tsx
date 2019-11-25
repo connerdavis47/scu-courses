@@ -1,7 +1,7 @@
 import React from 'react'
 import { withTracker } from 'meteor/react-meteor-data'
 
-import { Links, Link } from '/imports/api/links'
+import { Degrees, Link } from 'degrees.ts'
 
 class Info extends React.Component<{
   links: Link[];
@@ -32,6 +32,6 @@ class Info extends React.Component<{
 
 export default withTracker(() => {
   return {
-    links: Links.find().fetch(),
+    links: Degrees.find().fetch(),
   };
 })(Info);
