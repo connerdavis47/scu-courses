@@ -1,32 +1,13 @@
 import { Meteor } from 'meteor/meteor'
 
-import { Degrees } from 'degrees.ts'
-
-function insertLink(title: string, url: string) {
-  Degrees.insert({ title, url, createdAt: new Date() });
-}
+import { Degrees, Placeholder } from '/imports/api/degrees'
 
 Meteor.startup(() => {
-  // If the Degrees collection is empty, add some data.
+
+  // TODO - Dev - Placeholder Degrees data while developing client
   if (Degrees.find().count() === 0) {
-    insertLink(
-      'Do the Tutorial',
-      'https://www.meteor.com/tutorials/react/creating-an-app'
-    );
-
-    insertLink(
-      'Follow the Guide',
-      'http://guide.meteor.com'
-    );
-
-    insertLink(
-      'Read the Docs',
-      'https://docs.meteor.com'
-    );
-
-    insertLink(
-      'Discussions',
-      'https://forums.meteor.com'
-    );
+    Degrees.insert(Placeholder);
+    console.log('Inserted placeholder Degree');
   }
+
 });

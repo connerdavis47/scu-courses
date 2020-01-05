@@ -1,12 +1,21 @@
-import React from 'react'
+import React, { Component } from 'react'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+import id from 'shortid'
 
-import Hello from '/imports/ui/Hello'
-import Info from '/imports/ui/Info'
+import DegreeForm from '/imports/ui/DegreeForm'
+import Nav from '/imports/ui/Nav'
 
+const routes = [ DegreeForm ];
 export default () => (
-  <div>
-    <h1>Welcome to not Meteor!!</h1>
-    <Hello />
-    <Info />
-  </div>
+  <Router>
+    <Nav links={ Object.keys(routes) } />
+    {Object.entries(routes).map(component => (
+      <Route
+        key={id.generate()}
+        exact
+        component={component}
+        path={`/${component.toString().toLowerCase()}`}
+      />
+    ))}
+  </Router>
 );
